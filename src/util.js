@@ -112,6 +112,7 @@ export const nodeToJSON = (node, children) => {
     }
   })())
   if(json.type === 'text') {
+    delete json.name
     json.value = node.textContent
     if(/^\n\s*$/.test(json.value)) {
       return null // Don't save interelement whitespace

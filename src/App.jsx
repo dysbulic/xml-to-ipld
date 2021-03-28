@@ -31,14 +31,10 @@ export default () => {
         setContent(<pre>{doc}</pre>)
       }
     } else {
-      domDFS(
-        doc.documentElement,
-        (node, result) => {
-          const json = nodeToJSON(node, result)
-          console.info(json)
-          return json
-        }
+      const json = domDFS(
+        doc.documentElement, nodeToJSON,
       )
+      console.info('JSON', json)
       setContent(<h1>Doc {doc.nodeName}</h1>)
     }
   }
