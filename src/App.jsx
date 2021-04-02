@@ -1,3 +1,4 @@
+import loadable from '@loadable/component'
 import {
   Flex, ListItem, UnorderedList, Text, chakra,
 } from '@chakra-ui/react'
@@ -5,7 +6,8 @@ import { useState } from 'react'
 import {
   getDoc, domDFS, nodeToJSON, toDocTree, buildDOM, ipfs,
 } from './util'
-import './App.css'
+
+const Counter = loadable(() => import('./Counter'))
 
 export default () => {
   const [content, setContent] = useState(null)
@@ -15,8 +17,7 @@ export default () => {
     const name = evt.target.value
 
     if(files.length === 0) {
-      console.warn('No file is selected')
-      return
+      throw new Error('No file is selected')
     }
 
     const doc = await getDoc(files[0])
@@ -34,9 +35,9 @@ export default () => {
         setContent(<pre>{doc}</pre>)
       }
     } else {
-      const json = domDFS(
-        doc.documentElement, nodeToJSON,
-      )
+      const json = domDFS({
+        node: doc.documentElement, post: nodeToJSON,
+      })
       try {
         const cid = await toDocTree(json)
         const root = (await ipfs.dag.get(cid)).value
@@ -64,6 +65,7 @@ export default () => {
     <Flex align="center" direction="column" mt={25}>
       <chakra.input type="file" onChange={load} fontSize={30}/>
       {content}
+      <Counter/>
     </Flex>
   )
 }
