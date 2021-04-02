@@ -122,14 +122,30 @@ export const camelCase = (str, sep = '-') => (
   .join('')
 )
 
-const cleanAttributes = (attributes) => {
+// Dereference a CID if the node is one
+const optDeref = async (node) => {
+  if(CID.isCID(node)) {
+    return (await ipfs.dag.get(node)).value
+  } else {
+    return node
+  } 
+}
+
+const cleanAttributes = async (attributes) => {
+  attributes = await optDeref(attributes)
+
   const attrs = {}
   for(let [name, val] of Object.entries(attributes)) {
-    attrs[name] = val
+    attrs[name] = await optDeref(val)
   }
 
   if(attrs.style) {
-    console.info(attrs.style)
+    const style = {}
+    for(let [prop, val] of Object.entries(style)) {
+      prop = camelCase(prop, '-')
+      style[prop] = val
+    }
+    attrs.style = style
   }
 
   if(attrs.class) {
@@ -152,15 +168,6 @@ const cleanAttributes = (attributes) => {
   return attrs
 }
 
-// Dereference a CID if the node is one
-const optDeref = async (node) => {
-  if(CID.isCID(node)) {
-    return (await ipfs.dag.get(node)).value
-  } else {
-    return node
-  } 
-}
-
 export const buildDOM = async (root, key = { val: 0 }) => {
   if(root.type !== 'element') {
     throw new Error(`Root Type: ${root.type}`)
@@ -181,10 +188,10 @@ export const buildDOM = async (root, key = { val: 0 }) => {
         children.push(await buildDOM(child, key))
       } else {
         // otherwise build a node
-        const attrs = cleanAttributes(await optDeref(child.attributes))
+        const attrs = await cleanAttributes(child.attributes)
         attrs.key = ++key.val
 
-        const text = [...child.children].map(c => c.value).join()
+        const text = childChildren.map(c => c.value).join()
         children.push(React.createElement(
           child.name, attrs, text
         ))
@@ -193,9 +200,9 @@ export const buildDOM = async (root, key = { val: 0 }) => {
       console.error('Child', child.value)
     }
   }
-  const attrs = cleanAttributes(await optDeref(root.attributes))
+  const attrs = await cleanAttributes(root.attributes)
   return React.createElement(
-    root.nodeName, attrs, children
+    root.name, attrs, children
   )
 }
 
