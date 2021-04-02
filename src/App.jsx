@@ -1,6 +1,6 @@
 import { Flex } from '@chakra-ui/react'
 import { useState } from 'react'
-import { getDoc, domDFS, nodeToJSON } from './util'
+import { getDoc, domDFS, nodeToJSON, toIPLD } from './util'
 import './App.css';
 
 export default () => {
@@ -15,6 +15,7 @@ export default () => {
       return
     }
 
+    console.info(`Loading: ${name}`)
     const doc = await getDoc(files[0])
     console.info('DD', doc)
     if(doc === null) {
@@ -34,7 +35,9 @@ export default () => {
       const json = domDFS(
         doc.documentElement, nodeToJSON,
       )
-      console.info('JSON', json)
+      console.info('INS', json)
+      const cid = await toIPLD(json)
+      console.info('CID', cid)
       setContent(<h1>Doc {doc.nodeName}</h1>)
     }
   }

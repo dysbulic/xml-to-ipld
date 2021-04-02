@@ -1,3 +1,20 @@
+//import ipfsClient from 'ipfs-http-client'
+//const ipfs = ipfsClient()
+const ipfsClient = require("ipfs-http-client");
+const ipfs = ipfsClient({ port: 5001 })
+
+console.info('IPFS', ipfs)
+
+export const toIPLD = async (obj) => {
+  //console.info('IPFS', await ipfs.add('Testing'))
+  //const ipfs = createIPFS()
+  console.info('DAG', obj)
+  //return await ipfs.dag.put(obj)
+  return await ipfs.dag.put(
+    { test: 'test' },
+  )
+}
+
 export const arraysEqual = (a, b) => {
   if(a === b) return true
   if(a == null || b == null) return false
@@ -32,6 +49,7 @@ export const allOfType = (list, type) => (
 
 export const getDoc = (file) => (
   new Promise((resolve, reject) => {
+    console.info('Promise')
     const reader = new FileReader()
     reader.onload = (event) => {
       const parser = new DOMParser()
@@ -40,44 +58,44 @@ export const getDoc = (file) => (
       )
       if(!isParseError(xml)) {
         console.info('XML', xml, isParseError(xml))
-        resolve(xml)
-      } else {
-        const html = parser.parseFromString(
-          event.target.result, 'text/html'
+        return resolve(xml)
+      }
+      const html = parser.parseFromString(
+        event.target.result, 'text/html'
+      )
+      if(isParseError(html)) {
+        console.info('HTML', html, 'Parse Error')
+        return resolve(null)
+      }
+      if(
+        arraysEqual(
+          Array.from(html.firstChild.childNodes)
+          .map(n => n.localName),
+          ['head', 'body'],
         )
-        if(isParseError(html)) {
-          resolve(null)
-        } else if(
-          arraysEqual(
-            Array.from(html.firstChild.childNodes)
-            .map(n => n.localName),
-            ['head', 'body'],
+      ) {
+        const head = html.firstChild.firstChild
+        const body = html.firstChild.childNodes[1]
+        console.info('HTML', html, 'Checking for Text')
+        if(
+          head.childNodes.length === 0
+          && allOfType(
+            body.childNodes, Node.TEXT_NODE
           )
         ) {
-          const head = html.firstChild.firstChild
-          const body = html.firstChild.childNodes[1]
-          if(
-            head.childNodes.length === 0
-            && allOfType(
-              body.childNodes, Node.TEXT_NODE
-            )
-          ) {
-            const text = (
-              Array.from(body.childNodes)
-              .map(n => n.textContent)
-              .join()
-            )
-            resolve(text)
-          } else {
-            resolve(html)
-          }
-        } else {
-          resolve(html)
+          console.info('HTML', html, 'Is Text')
+          const text = (
+            Array.from(body.childNodes)
+            .map(n => n.textContent)
+            .join()
+          )
+          return resolve(text)
         }
+        console.info('HTML', 'Returning')
+        return resolve(html)
       }
     }
-
-    console.info('t', reader.readAsText(file))
+    reader.readAsText(file)
   })
 )
 
