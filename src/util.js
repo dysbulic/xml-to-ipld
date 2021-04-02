@@ -1,18 +1,27 @@
-//import ipfsClient from 'ipfs-http-client'
-//const ipfs = ipfsClient()
-const ipfsClient = require("ipfs-http-client");
-const ipfs = ipfsClient({ port: 5001 })
+import ipfsClient from 'ipfs-http-client'
+import React from 'react'
+import CID from 'cids'
 
-console.info('IPFS', ipfs)
+export const ipfs = ipfsClient({ port: 5001 })
 
 export const toIPLD = async (obj) => {
-  //console.info('IPFS', await ipfs.add('Testing'))
-  //const ipfs = createIPFS()
-  console.info('DAG', obj)
-  //return await ipfs.dag.put(obj)
-  return await ipfs.dag.put(
-    { test: 'test' },
+  return await ipfs.dag.put(obj)
+}
+
+export const toDocTree = async (obj) => {
+  const out = {}
+  await Promise.all(
+    Object.entries(obj).map(
+      async ([key, val]) => {
+        if(typeof val === 'object') {
+          out[key] = await toDocTree(val)
+        } else {
+          out[key] = val
+        }
+      }
+    )
   )
+  return await ipfs.dag.put(out)
 }
 
 export const arraysEqual = (a, b) => {
@@ -43,13 +52,11 @@ export const isParseError = (doc) => (
 // same node type
 export const allOfType = (list, type) => (
   Array.from(list)
-  .map(n => n.nodeType)
-  .reduce((acc, t) => acc && t === type, true)
+  .all(n => n.nodeType === type)
 )
 
 export const getDoc = (file) => (
   new Promise((resolve, reject) => {
-    console.info('Promise')
     const reader = new FileReader()
     reader.onload = (event) => {
       const parser = new DOMParser()
@@ -57,14 +64,12 @@ export const getDoc = (file) => (
         event.target.result, 'application/xml'
       )
       if(!isParseError(xml)) {
-        console.info('XML', xml, isParseError(xml))
         return resolve(xml)
       }
       const html = parser.parseFromString(
         event.target.result, 'text/html'
       )
       if(isParseError(html)) {
-        console.info('HTML', html, 'Parse Error')
         return resolve(null)
       }
       if(
@@ -76,14 +81,12 @@ export const getDoc = (file) => (
       ) {
         const head = html.firstChild.firstChild
         const body = html.firstChild.childNodes[1]
-        console.info('HTML', html, 'Checking for Text')
         if(
           head.childNodes.length === 0
           && allOfType(
             body.childNodes, Node.TEXT_NODE
           )
         ) {
-          console.info('HTML', html, 'Is Text')
           const text = (
             Array.from(body.childNodes)
             .map(n => n.textContent)
@@ -91,7 +94,6 @@ export const getDoc = (file) => (
           )
           return resolve(text)
         }
-        console.info('HTML', 'Returning')
         return resolve(html)
       }
     }
@@ -106,6 +108,95 @@ export const domDFS = (node, func, depth = 1) => {
     .filter(n => !!n)
   )
   return func(node, result)
+}
+
+export const camelCase = (str, sep = '-') => (
+  str.split(sep)
+  .map((part, i) => {
+    if(i === 0) {
+      return part
+    } else {
+      return part[0].toUpperCase() + part.slice(1)
+    }
+  })
+  .join('')
+)
+
+const cleanAttributes = (attributes) => {
+  const attrs = {}
+  for(let [name, val] of Object.entries(attributes)) {
+    attrs[name] = val
+  }
+
+  if(attrs.style) {
+    console.info(attrs.style)
+  }
+
+  if(attrs.class) {
+    attrs.className = attrs.class
+    delete attrs.class
+  }
+  for(let attr of ['xml:space', 'xmlns:xlink', 'xlink:href']) {
+    if(attrs[attr]) {
+      attrs[camelCase(attr, ':')] = attrs[attr]
+      delete attrs[attr]
+    }
+  }
+  for(let attr of ['flood-opacity', 'flood-color']) {
+    if(attrs[attr]) {
+      attrs[camelCase(attr, '-')] = attrs[attr]
+      delete attrs[attr]
+    }
+  }
+
+  return attrs
+}
+
+// Dereference a CID if the node is one
+const optDeref = async (node) => {
+  if(CID.isCID(node)) {
+    return (await ipfs.dag.get(node)).value
+  } else {
+    return node
+  } 
+}
+
+export const buildDOM = async (root, key = { val: 0 }) => {
+  if(root.type !== 'element') {
+    throw new Error(`Root Type: ${root.type}`)
+  }
+  const children = []
+  for(let child of Object.values(optDeref(root.children ?? {}))) {
+    if(child.type === 'element') {
+      const childChildren = Object.values(optDeref(child.children ?? []))
+      if(
+        childChildren.length === 0
+        || childChildren.some(
+          (sub) => (
+            !['text', 'cdata'].includes(sub.type)
+          )
+        )
+      ) {
+        // if there are non-text nodes, recurse
+        children.push(await buildDOM(child, key))
+      } else {
+        // otherwise build a node
+        const attrs = cleanAttributes(await optDeref(child.attributes))
+        attrs.key = ++key.val
+
+        const text = [...child.children].map(c => c.value).join()
+        children.push(React.createElement(
+          child.name, attrs, text
+        ))
+      }
+    } else if(child.value && child.value.trim() !== '') {
+      console.error('Child', child.value)
+    }
+  }
+  const attrs = cleanAttributes(await optDeref(root.attributes))
+  return React.createElement(
+    root.nodeName, attrs, children
+  )
 }
 
 export const nodeToJSON = (node, children) => {
@@ -129,17 +220,32 @@ export const nodeToJSON = (node, children) => {
     default: return 'unknown'
     }
   })())
-  if(json.type === 'text') {
+  if(json.type === 'text' || json.type === 'cdata') {
     delete json.name
     json.value = node.textContent
     if(/^\n\s*$/.test(json.value)) {
-      return null // Don't save interelement whitespace
+      return null // Don't save inter-element whitespace
     }
   }
+  if(children.length === 0) {
+    delete json.children
+  }
   json.attributes = Object.fromEntries(
-    [...node.attributes ?? []].map((attr) => (
-      [attr.name, attr.value]
-    ))
+    [...node.attributes ?? []].map((attr) => {
+      let value = attr.value
+      if(attr.name === 'style') {
+        value = Object.fromEntries(
+          attr.value.split(';').map(
+            (rule) => {
+              const [name, ...val] = rule.split(':')
+              return [camelCase(name.trim()), val.join().trim()]
+            }
+          )
+          .filter(e => e.some(t => /\S/.test(t)))
+        )
+      }
+      return [attr.name, value]
+    })
   )
   return json
 }
