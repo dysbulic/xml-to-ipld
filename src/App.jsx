@@ -1,4 +1,6 @@
-import { Flex, ListItem, UnorderedList, Text } from '@chakra-ui/react'
+import {
+  Flex, ListItem, UnorderedList, Text, chakra,
+} from '@chakra-ui/react'
 import { useState } from 'react'
 import {
   getDoc, domDFS, nodeToJSON, toDocTree, buildDOM, ipfs,
@@ -38,9 +40,8 @@ export default () => {
       try {
         const cid = await toDocTree(json)
         const root = (await ipfs.dag.get(cid)).value
-        console.info(<h1>CID for {name}: {cid.toString()}</h1>)
+        console.info(`CID for ${name}: ${cid.toString()}`)
         const dom = await buildDOM(root)
-        console.info("DOM", dom)
         setContent(dom)
       } catch(err) {
         console.warn('Error Building', err)
@@ -61,7 +62,7 @@ export default () => {
 
   return (
     <Flex align="center" direction="column" mt={25}>
-      <input type="file" onChange={load}/>
+      <chakra.input type="file" onChange={load} fontSize={30}/>
       {content}
     </Flex>
   )

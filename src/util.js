@@ -132,7 +132,7 @@ const optDeref = async (node) => {
 }
 
 const cleanAttributes = async (attributes) => {
-  attributes = await optDeref(attributes)
+  attributes = await optDeref(attributes ?? {})
 
   const attrs = {}
   for(let [name, val] of Object.entries(attributes)) {
@@ -141,9 +141,10 @@ const cleanAttributes = async (attributes) => {
 
   if(attrs.style) {
     const style = {}
-    for(let [prop, val] of Object.entries(style)) {
-      prop = camelCase(prop, '-')
-      style[prop] = val
+    for(let [prop, val] of (
+      Object.entries(attrs.style)
+    )) {
+      style[camelCase(prop, '-')] = val
     }
     attrs.style = style
   }
@@ -158,7 +159,9 @@ const cleanAttributes = async (attributes) => {
       delete attrs[attr]
     }
   }
-  for(let attr of ['flood-opacity', 'flood-color']) {
+  for(let attr of [
+    'flood-opacity', 'flood-color', 'stop-color',
+  ]) {
     if(attrs[attr]) {
       attrs[camelCase(attr, '-')] = attrs[attr]
       delete attrs[attr]
@@ -173,9 +176,17 @@ export const buildDOM = async (root, key = { val: 0 }) => {
     throw new Error(`Root Type: ${root.type}`)
   }
   const children = []
-  for(let child of Object.values(optDeref(root.children ?? {}))) {
+  for(let child of Object.values(
+    await optDeref(root.children ?? [])
+  )) {
+    child = await optDeref(child)
     if(child.type === 'element') {
-      const childChildren = Object.values(optDeref(child.children ?? []))
+      const childChildren = await Promise.all(
+        Object.values(
+          await optDeref(child.children ?? [])
+        )
+        .map(optDeref)
+      )
       if(
         childChildren.length === 0
         || childChildren.some(
@@ -201,8 +212,9 @@ export const buildDOM = async (root, key = { val: 0 }) => {
     }
   }
   const attrs = await cleanAttributes(root.attributes)
+  attrs.key = ++key.val
   return React.createElement(
-    root.name, attrs, children
+    root.name, attrs, children.length > 0 ? children : null
   )
 }
 
@@ -254,5 +266,8 @@ export const nodeToJSON = (node, children) => {
       return [attr.name, value]
     })
   )
+  if(Object.keys(json.attributes).length === 0) {
+    delete json.attributes
+  }
   return json
 }
