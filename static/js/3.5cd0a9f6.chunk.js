@@ -1,2 +1,0 @@
-(this["webpackJsonpxml-to-ipld"]=this["webpackJsonpxml-to-ipld"]||[]).push([[3],{461:function(t,n,e){"use strict";e.r(n);var i=e(16),c=function(t){var n=t.children;return Object(i.jsx)("h1",{children:n})};n.default=function(){return Object(i.jsx)(c,{children:"Testing"})}}}]);
-//# sourceMappingURL=3.5cd0a9f6.chunk.js.map
