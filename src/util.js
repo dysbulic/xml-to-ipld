@@ -221,9 +221,8 @@ export const nodeToJSON = ({
 const optDeref = async (node) => {
   if(CID.isCID(node)) {
     return (await ipfs.dag.get(node)).value
-  } else {
-    return node
-  } 
+  }
+  return node
 }
 
 const cleanAttributes = async (attributes) => {
@@ -270,6 +269,10 @@ const cleanAttributes = async (attributes) => {
 export const buildDOM = async ({
   root, key = { val: 0 },
   onProcessing = () => {},
+  onCompleting = () => {},
+  onChildStart = () => {},
+  onChildDOM = () => {},
+  onChildElem = () => {},
 }) => {
   if(root.type !== 'element') {
     throw new Error(`Root Type: ${root.type}`)
@@ -280,6 +283,7 @@ export const buildDOM = async ({
     await optDeref(root.children ?? [])
   )) {
     child = await optDeref(child)
+    onChildStart({ child })
     if(child.type === 'element') {
       const childChildren = await Promise.all(
         Object.values(
@@ -296,16 +300,20 @@ export const buildDOM = async ({
         )
       ) {
         // if there are non-text nodes, recurse
-        children.push(await buildDOM(child, key))
+        const dom = await buildDOM({ root: child, key })
+        onChildDOM(child, dom)
+        children.push(dom)
       } else {
         // otherwise build a node
         const attrs = await cleanAttributes(child.attributes)
         attrs.key = ++key.val
 
         const text = childChildren.map(c => c.value).join()
-        children.push(React.createElement(
-          child.name, attrs, text
-        ))
+        const elem = (
+          React.createElement(child.name, attrs, text)
+        )
+        onChildElem(child, elem)
+        children.push(elem)
       }
     } else if(child.value && child.value.trim() !== '') {
       console.error('Child', child.value)
@@ -313,61 +321,9 @@ export const buildDOM = async ({
   }
   const attrs = await cleanAttributes(root.attributes)
   attrs.key = ++key.val
-  return React.createElement(
+  const elem = React.createElement(
     root.name, attrs, children.length > 0 ? children : null
   )
-}
-
-export const nodeToJSON = (node, children) => {
-  const json = {
-    name: node.localName, children,
-  }
-  json.type = ((() => {
-    switch(node.nodeType) {
-    case Node.ELEMENT_NODE: return 'element'
-    case Node.TEXT_NODE: return 'text'
-    case Node.ATTRIBUTE_NODE: return 'attribute'
-    case Node.CDATA_SECTION_NODE: return 'cdata'
-    case Node.ENTITY_REFERENCE_NODE: return 'reference'
-    case Node.ENTITY_NODE: return 'entity'
-    case Node.PROCESSING_INSTRUCTION_NODE: return 'instruction'
-    case Node.COMMENT_NODE: return 'comment'
-    case Node.DOCUMENT_NODE: return 'document'
-    case Node.DOCUMENT_TYPE_NODE: return 'doctype'
-    case Node.DOCUMENT_FRAGMENT_NODE: return 'fragment'
-    case Node.NOTATION_NODE: return 'notation'
-    default: return 'unknown'
-    }
-  })())
-  if(json.type === 'text' || json.type === 'cdata') {
-    delete json.name
-    json.value = node.textContent
-    if(/^\n\s*$/.test(json.value)) {
-      return null // Don't save inter-element whitespace
-    }
-  }
-  if(children.length === 0) {
-    delete json.children
-  }
-  json.attributes = Object.fromEntries(
-    [...node.attributes ?? []].map((attr) => {
-      let value = attr.value
-      if(attr.name === 'style') {
-        value = Object.fromEntries(
-          attr.value.split(';').map(
-            (rule) => {
-              const [name, ...val] = rule.split(':')
-              return [camelCase(name.trim()), val.join().trim()]
-            }
-          )
-          .filter(e => e.some(t => /\S/.test(t)))
-        )
-      }
-      return [attr.name, value]
-    })
-  )
-  if(Object.keys(json.attributes).length === 0) {
-    delete json.attributes
-  }
-  return json
+  onCompleting(root, elem)
+  return 
 }

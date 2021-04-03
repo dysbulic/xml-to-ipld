@@ -1,16 +1,15 @@
 import loadable from '@loadable/component'
 import {
-  Flex, ListItem, UnorderedList, Text, chakra,
+  Flex, ListItem, UnorderedList, Text, chakra, Box,
 } from '@chakra-ui/react'
 import React, { useEffect, useState } from 'react'
-import * as d3 from 'd3'
 import {
   getDoc, domDFS, nodeToJSON, toDocTree,
   buildDOM, ipfs,
 } from './util'
-import ForceGraph from './ForceGraph'
 
-const Counter = loadable(() => import('./Counter'))
+//const ForceGraph = loadable(() => import('./ForceGraph'))
+const DynGraph = loadable(() => import('./DynGraph'))
 
 const isNum = (maybe) => (
   /^(\d+\.?\d*)|(\d*\.?\d+)$/.test(maybe)
@@ -91,12 +90,14 @@ export default () => {
           <>
             <Text>Unable to create object.</Text>
             <Text>Error: <q>{err.message}</q></Text>
-            <Text>If the error is with fetching, try running the following from the command line:</Text>
+            <Text>If the error is with fetching, try the CORS solution above.</Text>
           </>
         )
       }
     }
   }
+
+  console.info(content)
 
   return (
     <Flex align="center" direction="column" mt={25}>
@@ -107,11 +108,11 @@ export default () => {
       </UnorderedList>
       <chakra.input type="file" onChange={load} fontSize={30}/>
       {content && (
-        <Flex h="90vh">
+        <Box h="90vh">
           {content}
-        </Flex>
+        </Box>
       )}
-      <ForceGraph {...{ nodeHoverTooltip }}/>
+      <DynGraph/>
     </Flex>
   )
 }
