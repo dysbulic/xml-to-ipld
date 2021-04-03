@@ -1,0 +1,7 @@
+<?xml-stylesheet href="sin.xsl" type="text/xsl" ?>
+<html>
+  <head><title>Test sin()</title></head>
+  <body>
+    <h1>Is this visible?</h1>
+  </body>
+</html>

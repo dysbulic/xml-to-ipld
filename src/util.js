@@ -15,7 +15,11 @@ export const toDocTree = async (obj) => {
   await Promise.all(
     Object.entries(obj).map(
       async ([key, val]) => {
-        if(typeof val === 'object') {
+        if(Array.isArray(val)) {
+          out[key] = await Promise.all(
+            val.map(toDocTree)
+          )
+        } else if(typeof val === 'object') {
           out[key] = await toDocTree(val)
         } else {
           out[key] = val
@@ -80,8 +84,12 @@ export const getDoc = (file) => (
       if(isParseError(html)) {
         return resolve(null)
       }
+      // Browsers will wrap the contents of any
+      // file in a <html><head/><body>…</body></html>
+      // structure.
       if(
-        arraysEqual(
+        html.firstChild.localName === 'html'
+        && arraysEqual(
           Array.from(html.firstChild.childNodes)
           .map(n => n.localName),
           ['head', 'body'],
@@ -110,22 +118,33 @@ export const getDoc = (file) => (
 )
 
 export const domDFS = ({
-  node, pre = () => {}, post = () => {},
-  depth = 1, count = 1
+  node, pre = () => {}, step = () => {},
+  post = () => {}, depth = 1,
+  count = { current: 1 }, 
 }) => {
   // SQL nested set model, "right" is count on exit
-  const left = count
+  const left = count.current
   pre(node, depth, left)
-  const result = (
-    Array.from(node.childNodes)
-    .map(child => domDFS({
-      node: child, pre, post,
-      depth: depth + 1, count: ++count,
-    }))
-    .filter(n => !!n)
+  const children = []
+  Array.from(node.childNodes).forEach(
+    (child) => {
+      count.current++
+      const result = domDFS({
+        node: child, pre, post,
+        depth: depth + 1, count,
+      })
+      if(result) {
+        children.push(result)
+        step({
+          node, children,
+          depth, left, right: count.current,
+        })
+      }
+    }
   )
   return post({
-    node, children: result, depth, left, right: count
+    node, children,
+    depth, left, right: count.current,
   })
 }
 
@@ -237,6 +256,7 @@ const cleanAttributes = async (attributes) => {
   }
   for(let attr of [
     'flood-opacity', 'flood-color', 'stop-color',
+    'clip-rule',
   ]) {
     if(attrs[attr]) {
       attrs[camelCase(attr, '-')] = attrs[attr]
@@ -247,10 +267,14 @@ const cleanAttributes = async (attributes) => {
   return attrs
 }
 
-export const buildDOM = async (root, key = { val: 0 }) => {
+export const buildDOM = async ({
+  root, key = { val: 0 },
+  onProcessing = () => {},
+}) => {
   if(root.type !== 'element') {
     throw new Error(`Root Type: ${root.type}`)
   }
+  onProcessing({ node: root })
   const children = []
   for(let child of Object.values(
     await optDeref(root.children ?? [])
