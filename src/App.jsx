@@ -1,13 +1,14 @@
 import loadable from '@loadable/component'
 import {
-  Flex, ListItem, UnorderedList, Text, chakra, Box,
+  Flex, ListItem, UnorderedList, Text, Box,
   Input,
 } from '@chakra-ui/react'
 import React, { useEffect, useState } from 'react'
 import {
-  getDoc, domDFS, nodeToJSON, toDocTree,
-  buildDOM, ipfs,
+  nodeToJSON, buildDOM, ipfs,
 } from './util'
+import { getDoc } from './utils/content'
+import { dfs, toTree } from './utils/structures'
 
 const ForcedGraph = loadable(() => import('./ForcedGraph'))
 //const DynGraph = loadable(() => import('./DynGraph'))
@@ -38,8 +39,8 @@ export default () => {
   const docTransforms = [fixViewBox]
   
   useEffect(() => {}, [])
-  const onProcessing = ({ node }) => {
-
+  const onDOMStart = ({ child }) => {
+    console.info('Processing', child)
   }
   const load = async (evt) => {
     const files = evt.target.files
@@ -64,18 +65,21 @@ export default () => {
         setContent(<pre>{doc}</pre>)
       }
     } else {
-      const json = domDFS({
+      const json = dfs({
         node: doc.documentElement, post: nodeToJSON,
       })
       try {
         docTransforms.forEach(t => t(json))
-        const cid = await toDocTree(json)
+        const cid = await toTree({
+          obj: json,
+          leafFor: async (node) => ipfs.dag.put(node),
+        })
         const root = (await ipfs.dag.get(cid)).value
         console.info(
           `CID for ${name}: ${cid.toString()}`
         )
         const dom = await buildDOM({
-          root, onProcessing,
+          root, onDOMStart,
         })
         console.info('DOM', dom)
         setContent(dom)
@@ -111,7 +115,7 @@ export default () => {
         <ListItem _before={{ content: '"$ "' }}>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["http://localhost:3000", "http://localhost:5001", "https://webui.ipfs.io", "https://dysbulic.github.io"]'</ListItem>
         <ListItem _before={{ content: '"$ "' }}>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST"]'</ListItem>
       </UnorderedList>
-      <Input type="file" onChange={load} fontSize={30}/>
+      <Input type="file" onChange={load} maxW={500} fontSize={30}/>
       {content && (
         <Box h="90vh">
           {content}

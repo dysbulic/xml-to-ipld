@@ -8,146 +8,6 @@ export const toIPLD = async (obj) => {
   return await ipfs.dag.put(obj)
 }
 
-// Creates a sharded object where each level
-// is a separate document.
-export const toDocTree = async (obj) => {
-  const out = {}
-  await Promise.all(
-    Object.entries(obj).map(
-      async ([key, val]) => {
-        if(Array.isArray(val)) {
-          out[key] = await Promise.all(
-            val.map(toDocTree)
-          )
-        } else if(typeof val === 'object') {
-          out[key] = await toDocTree(val)
-        } else {
-          out[key] = val
-        }
-      }
-    )
-  )
-  return await ipfs.dag.put(out)
-}
-
-export const arraysEqual = (a, b) => {
-  if(a === b) return true
-  if(a == null || b == null) return false
-  if(a.length !== b.length) return false
-
-  for(let i = 0; i < a.length; ++i) {
-    if(a[i] !== b[i]) return false
-  }
-  return true
-}
-
-export const parsererrorNS = (() => (
-  (new DOMParser())
-  .parseFromString('INVALID', 'application/xml')
-  .getElementsByTagName('parsererror')[0]
-  .namespaceURI
-))()
-
-export const isParseError = (doc) => (
-  doc.getElementsByTagNameNS(
-    parsererrorNS, 'parsererror'
-  ).length > 0
-)
-
-// Checks if all the elements in a list have the
-// same node type
-export const allOfType = (list, type) => (
-  Array.from(list)
-  .all(n => n.nodeType === type)
-)
-
-// Return the contents of a file returned from
-// a form input. It first tries as XML. If that
-// succeeds, the DOM is returned. Next HTML is
-// tried. Most files (txt, png, m4a, etc.) are
-// inserted into a simple HTML document. HTML
-// produces a DOM which is returned.
-export const getDoc = (file) => (
-  new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      const parser = new DOMParser()
-      const xml = parser.parseFromString(
-        event.target.result, 'application/xml'
-      )
-      if(!isParseError(xml)) {
-        return resolve(xml)
-      }
-      const html = parser.parseFromString(
-        event.target.result, 'text/html'
-      )
-      if(isParseError(html)) {
-        return resolve(null)
-      }
-      // Browsers will wrap the contents of any
-      // file in a <html><head/><body>…</body></html>
-      // structure.
-      if(
-        html.firstChild.localName === 'html'
-        && arraysEqual(
-          Array.from(html.firstChild.childNodes)
-          .map(n => n.localName),
-          ['head', 'body'],
-        )
-      ) {
-        const head = html.firstChild.firstChild
-        const body = html.firstChild.childNodes[1]
-        if(
-          head.childNodes.length === 0
-          && allOfType(
-            body.childNodes, Node.TEXT_NODE
-          )
-        ) {
-          const text = (
-            Array.from(body.childNodes)
-            .map(n => n.textContent)
-            .join()
-          )
-          return resolve(text)
-        }
-        return resolve(html)
-      }
-    }
-    reader.readAsText(file)
-  })
-)
-
-export const domDFS = ({
-  node, pre = () => {}, step = () => {},
-  post = () => {}, depth = 1,
-  count = { current: 1 }, 
-}) => {
-  // SQL nested set model, "right" is count on exit
-  const left = count.current
-  pre(node, depth, left)
-  const children = []
-  Array.from(node.childNodes).forEach(
-    (child) => {
-      count.current++
-      const result = domDFS({
-        node: child, pre, post,
-        depth: depth + 1, count,
-      })
-      if(result) {
-        children.push(result)
-        step({
-          node, children,
-          depth, left, right: count.current,
-        })
-      }
-    }
-  )
-  return post({
-    node, children,
-    depth, left, right: count.current,
-  })
-}
-
 export const camelCase = (str, sep = '-') => (
   str.split(sep)
   .map((part, i) => {
@@ -268,11 +128,11 @@ const cleanAttributes = async (attributes) => {
 
 export const buildDOM = async ({
   root, key = { val: 0 },
-  onProcessing = () => {},
-  onCompleting = () => {},
-  onChildStart = () => {},
-  onChildDOM = () => {},
-  onChildElem = () => {},
+  onProcessing = (..._) => {},
+  onCompleting = (..._) => {},
+  onDOMStart = (..._) => {},
+  onDOMFinish = (..._) => {},
+  onChildElem = (..._) => {},
 }) => {
   if(root.type !== 'element') {
     throw new Error(`Root Type: ${root.type}`)
@@ -283,17 +143,18 @@ export const buildDOM = async ({
     await optDeref(root.children ?? [])
   )) {
     child = await optDeref(child)
-    onChildStart({ child })
     if(child.type === 'element') {
-      const childChildren = await Promise.all(
+      onDOMStart({ child })
+      child.children = await Promise.all(
         Object.values(
           await optDeref(child.children ?? [])
         )
         .map(optDeref)
       )
+      console.info(child, child.children)
       if(
-        childChildren.length === 0
-        || childChildren.some(
+        child.children.length === 0
+        || child.children.some(
           (sub) => (
             !['text', 'cdata'].includes(sub.type)
           )
@@ -301,14 +162,16 @@ export const buildDOM = async ({
       ) {
         // if there are non-text nodes, recurse
         const dom = await buildDOM({ root: child, key })
-        onChildDOM(child, dom)
+        onDOMFinish(child, dom)
         children.push(dom)
       } else {
         // otherwise build a node
         const attrs = await cleanAttributes(child.attributes)
         attrs.key = ++key.val
 
-        const text = childChildren.map(c => c.value).join()
+        const text = (
+          child.children.map(c => c.value).join()
+        )
         const elem = (
           React.createElement(child.name, attrs, text)
         )

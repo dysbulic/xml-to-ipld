@@ -4,8 +4,8 @@ import { Box, Button, chakra, Flex } from '@chakra-ui/react'
 
 const color = d3.scaleOrdinal(d3.schemeTableau10)
 
-const width = 400
-const height = 400
+const width = 640
+const height = 480
 
 const chartOn = (domNode) => {
   const svg = (
