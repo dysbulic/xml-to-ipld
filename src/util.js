@@ -128,30 +128,27 @@ const cleanAttributes = async (attributes) => {
 
 export const buildDOM = async ({
   root, key = { val: 0 },
-  onProcessing = (..._) => {},
-  onCompleting = (..._) => {},
-  onDOMStart = (..._) => {},
-  onDOMFinish = (..._) => {},
-  onChildElem = (..._) => {},
+  onProcessing, onCompleting,
+  onDOMStart, onDOMFinish,
+  onChildElem,
 }) => {
   if(root.type !== 'element') {
     throw new Error(`Root Type: ${root.type}`)
   }
-  onProcessing({ node: root })
+  onProcessing?.({ node: root })
   const children = []
   for(let child of Object.values(
     await optDeref(root.children ?? [])
   )) {
     child = await optDeref(child)
     if(child.type === 'element') {
-      onDOMStart({ child })
+      onDOMStart?.({ child })
       child.children = await Promise.all(
         Object.values(
           await optDeref(child.children ?? [])
         )
         .map(optDeref)
       )
-      console.info(child, child.children)
       if(
         child.children.length === 0
         || child.children.some(
@@ -161,8 +158,15 @@ export const buildDOM = async ({
         )
       ) {
         // if there are non-text nodes, recurse
-        const dom = await buildDOM({ root: child, key })
-        onDOMFinish(child, dom)
+        const dom = await (
+          buildDOM({
+            root: child, key,
+            onProcessing, onCompleting,
+            onDOMStart, onDOMFinish,
+            onChildElem,
+          })
+        )
+        onDOMFinish?.({ child, node: dom })
         children.push(dom)
       } else {
         // otherwise build a node
@@ -175,7 +179,7 @@ export const buildDOM = async ({
         const elem = (
           React.createElement(child.name, attrs, text)
         )
-        onChildElem(child, elem)
+        onChildElem?.({ child, node: elem })
         children.push(elem)
       }
     } else if(child.value && child.value.trim() !== '') {
@@ -187,6 +191,6 @@ export const buildDOM = async ({
   const elem = React.createElement(
     root.name, attrs, children.length > 0 ? children : null
   )
-  onCompleting(root, elem)
+  onCompleting?.(root, elem)
   return 
 }

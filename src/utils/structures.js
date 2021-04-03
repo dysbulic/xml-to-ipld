@@ -10,7 +10,9 @@ export const toTree = (
         async ([key, val]) => {
           if(Array.isArray(val)) {
             out[key] = await Promise.all(
-              val.map(v => toTree({ obj: v, leafFor }))
+              val.map(async (v) => (
+                await toTree({ obj: v, leafFor })
+              ))
             )
           } else if(typeof val === 'object') {
             out[key] = await toTree({ obj: val, leafFor })
@@ -29,7 +31,7 @@ export const dfs = ({
   node, depth = 1, count = { current: 1 },
   pre = (..._) => {},
   step = (..._) => {},
-  post = (..._) => {},
+  nodeFor = ({ node, ..._ }) => node,
   childrenOf = (node) => Array.from(node.childNodes),
 }) => {
   // SQL nested set model, "right" is count on exit
@@ -40,7 +42,9 @@ export const dfs = ({
     (child) => {
       count.current++
       const result = dfs({
-        node: child, pre, post,
+        node: child,
+        pre, step, nodeFor,
+        childrenOf,
         depth: depth + 1, count,
       })
       if(result) {
@@ -52,9 +56,8 @@ export const dfs = ({
       }
     }
   )
-  post({
+  return nodeFor({
     node, children,
     depth, left, right: count.current,
   })
-  return children
 }

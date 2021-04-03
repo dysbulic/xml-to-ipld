@@ -66,13 +66,17 @@ export default () => {
       }
     } else {
       const json = dfs({
-        node: doc.documentElement, post: nodeToJSON,
+        node: doc.documentElement,
+        nodeFor: nodeToJSON,
       })
+      console.info('DFS', json)
       try {
         docTransforms.forEach(t => t(json))
         const cid = await toTree({
           obj: json,
-          leafFor: async (node) => ipfs.dag.put(node),
+          leafFor: async (node) => (
+            await ipfs.dag.put(node)
+          ),
         })
         const root = (await ipfs.dag.get(cid)).value
         console.info(
