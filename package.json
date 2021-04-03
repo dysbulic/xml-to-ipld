@@ -6,6 +6,7 @@
   "homepage": "https://dysbulic.github.io/xml-to-ipld/",
   "private": false,
   "license": "MIT",
+  "main": "src/index.jsx",
   "dependencies": {
     "@babel/core": "7.12.3",
     "@chakra-ui/react": "^1.4.1",

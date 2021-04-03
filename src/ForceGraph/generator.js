@@ -44,7 +44,7 @@ export function runForceGraph(
 
   const getClass = (d) => {
     return d.gender === 'male' ? styles.male : styles.female;
-  };
+  }
 
   const drag = (simulation) => {
     const dragstarted = (evt, d) => {
@@ -53,12 +53,12 @@ export function runForceGraph(
       }
       d.fx = d.x
       d.fy = d.y
-    };
+    }
 
     const dragged = (evt, d) => {
       d.fx = evt.x
       d.fy = evt.y
-    };
+    }
 
     const dragended = (evt, d) => {
       if (!evt.active) {
@@ -129,7 +129,7 @@ export function runForceGraph(
     .selectAll("line")
     .data(links)
     .join("line")
-    .attr("stroke-width", d => { console.info(d); return /*Math.sqrt(d.value)*/ 1 })
+    .attr("stroke-width", d => 1)
   )
   const node = (
     svg.append("g")
@@ -181,12 +181,12 @@ export function runForceGraph(
     // update node positions
     node
     .attr("cx", d => d.x)
-    .attr("cy", d => d.y);
+    .attr("cy", d => d.y)
 
     // update label positions
     label
-    .attr("x", d => { return d.x; })
-    .attr("y", d => { return d.y; })
+    .attr("x", d => d.x)
+    .attr("y", d => d.y)
   })
 
   return {

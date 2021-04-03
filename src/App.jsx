@@ -1,6 +1,7 @@
 import loadable from '@loadable/component'
 import {
   Flex, ListItem, UnorderedList, Text, chakra, Box,
+  Input,
 } from '@chakra-ui/react'
 import React, { useEffect, useState } from 'react'
 import {
@@ -8,8 +9,8 @@ import {
   buildDOM, ipfs,
 } from './util'
 
-//const ForceGraph = loadable(() => import('./ForceGraph'))
-const DynGraph = loadable(() => import('./DynGraph'))
+const ForcedGraph = loadable(() => import('./ForcedGraph'))
+//const DynGraph = loadable(() => import('./DynGraph'))
 
 const isNum = (maybe) => (
   /^(\d+\.?\d*)|(\d*\.?\d+)$/.test(maybe)
@@ -35,13 +36,6 @@ const fixViewBox = (json) => {
 export default () => {
   const [content, setContent] = useState(null)
   const docTransforms = [fixViewBox]
-  const nodeHoverTooltip = React.useCallback(
-    (node) => (
-      `<div>     
-        <b>${node.name}</b>
-      </div>`
-    ), []
-  )
   
   useEffect(() => {}, [])
   const onProcessing = ({ node }) => {
@@ -83,6 +77,7 @@ export default () => {
         const dom = await buildDOM({
           root, onProcessing,
         })
+        console.info('DOM', dom)
         setContent(dom)
       } catch(err) {
         console.warn('Error Building', err)
@@ -97,7 +92,17 @@ export default () => {
     }
   }
 
-  console.info(content)
+  const graph = {
+    nodes: [...new Array(5)].map(
+      (_, i) => ({ id: i + 1 })
+    ),
+    links: [
+      { source: 1, target: 3 },
+      { source: 3, target: 4 },
+      { source: 5, target: 3 },
+      { source: 5, target: 1 },
+    ]
+  }
 
   return (
     <Flex align="center" direction="column" mt={25}>
@@ -106,13 +111,13 @@ export default () => {
         <ListItem _before={{ content: '"$ "' }}>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["http://localhost:3000", "http://localhost:5001", "https://webui.ipfs.io", "https://dysbulic.github.io"]'</ListItem>
         <ListItem _before={{ content: '"$ "' }}>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST"]'</ListItem>
       </UnorderedList>
-      <chakra.input type="file" onChange={load} fontSize={30}/>
+      <Input type="file" onChange={load} fontSize={30}/>
       {content && (
         <Box h="90vh">
           {content}
         </Box>
       )}
-      <DynGraph/>
+      <ForcedGraph {...{ graph }}/>
     </Flex>
   )
 }
