@@ -115,7 +115,7 @@ const cleanAttributes = async (attributes) => {
   }
   for(let attr of [
     'flood-opacity', 'flood-color', 'stop-color',
-    'clip-rule',
+    'clip-rule', 'stroke-miterlimit',
   ]) {
     if(attrs[attr]) {
       attrs[camelCase(attr, '-')] = attrs[attr]
@@ -128,27 +128,32 @@ const cleanAttributes = async (attributes) => {
 
 export const buildDOM = async ({
   root, key = { val: 0 },
-  onProcessing, onCompleting,
-  onDOMStart, onDOMFinish,
-  onChildElem,
+  onBuildStart = null, onBuildEnd = null,
+  onDOMStart = null, onDOMFinish = null,
+  onChildElem = null,
 }) => {
   if(root.type !== 'element') {
     throw new Error(`Root Type: ${root.type}`)
   }
-  onProcessing?.({ node: root })
+  root.children = await Promise.all(
+    Object.values(
+      await optDeref(root.children ?? [])
+    )
+    .map(optDeref)
+  )
+  if(root.depth === 1 && root.left === 1) {
+    onBuildStart?.({ node: root })
+  }
   const children = []
-  for(let child of Object.values(
-    await optDeref(root.children ?? [])
-  )) {
-    child = await optDeref(child)
+  for(let child of root.children) {
     if(child.type === 'element') {
-      onDOMStart?.({ child })
       child.children = await Promise.all(
         Object.values(
           await optDeref(child.children ?? [])
         )
         .map(optDeref)
       )
+      onDOMStart?.({ child })
       if(
         child.children.length === 0
         || child.children.some(
@@ -161,7 +166,7 @@ export const buildDOM = async ({
         const dom = await (
           buildDOM({
             root: child, key,
-            onProcessing, onCompleting,
+            onBuildStart, onBuildEnd,
             onDOMStart, onDOMFinish,
             onChildElem,
           })
@@ -191,6 +196,6 @@ export const buildDOM = async ({
   const elem = React.createElement(
     root.name, attrs, children.length > 0 ? children : null
   )
-  onCompleting?.(root, elem)
-  return 
+  onBuildEnd?.(root, elem)
+  return elem
 }

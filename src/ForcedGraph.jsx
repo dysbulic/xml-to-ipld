@@ -1,5 +1,5 @@
 import * as d3 from 'd3'
-import { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Box, Button, chakra, Flex } from '@chakra-ui/react'
 
 const color = d3.scaleOrdinal(d3.schemeTableau10)
@@ -47,37 +47,44 @@ const chartOn = (domNode) => {
     .attr('y2', d => d.target.y)
   }
 
-  return Object.assign(svg.node(), {
-    update: ({ nodes, links }) => {
-      // Make a shallow copy to protect against mutation, while
-      // recycling old nodes to preserve position and velocity.
-      const old = new Map(node.data().map(d => [d.id, d]))
-      nodes = nodes.map(d => Object.assign(old.get(d.id) || {}, d))
-      links = links.map(d => Object.assign({}, d))
+  const update = ({ nodes, links }) => {
+    // Make a shallow copy to protect against mutation, while
+    // recycling old nodes to preserve position and velocity.
+    const old = new Map(node.data().map(d => [d.id, d]))
+    nodes = nodes.map(d => Object.assign(old.get(d.id) || {}, d))
+    links = links.map(d => Object.assign({}, d))
 
-      node = (
-        node.data(nodes, d => d.id)
-        .join((enter) => (
-          enter.append('circle')
-          .attr('r', 8)
-          .attr('fill', d => color(d.id))
-        ))
-      )
-      link = (
-        link.data(links, d => [d.source, d.target])
-        .join('line')
-      )
+    node = (
+      node.data(nodes, d => d.id)
+      .join((enter) => (
+        enter.append('circle')
+        .attr('r', 8)
+        .attr('fill', d => color(d.id))
+      ))
+    )
+    link = (
+      link.data(links, d => [d.source, d.target])
+      .join('line')
+    )
 
-      simulation.nodes(nodes)
-      simulation.force('link').links(links)
-      simulation.alpha(1).restart()
-    }
-  })
+    simulation.nodes(nodes)
+    simulation.force('link').links(links)
+    simulation.alpha(1).restart()
+  }
+
+  const rezoom = () => {
+    const bounds = svg.node().getBBox()
+    const { x, y, width, height } = bounds
+    svg.attr('viewBox', [x, y, width, height])
+  }
+
+  return Object.assign(svg.node(), { update, rezoom })
 }
 
-export default ({ graph }) => {
+export default ({ graph, generating = false }) => {
   const svg = useRef()
   const [chart, setChart] = useState()
+  const [intervalId, setIntervalId] = useState()
 
   useEffect(() => {
     setChart(chartOn(svg.current))
@@ -85,6 +92,16 @@ export default ({ graph }) => {
 
   useEffect(() => {
     graph && chart?.update(graph)
+  }, [chart, graph])
+
+  useEffect(() => {
+    if(generating) {
+      setIntervalId(
+        setInterval(() => chart.rezoom(), 100)
+      )
+    } else {
+      clearInterval(intervalId)
+    }
   }, [chart, graph])
 
   return (

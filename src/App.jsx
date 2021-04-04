@@ -34,15 +34,60 @@ const fixViewBox = (json) => {
   }
 }
 
+const getConnections = (node) => {
+  const id = `${node.left}:${node.right}`
+  return (
+    Object.fromEntries(
+      node.children.map((c) => {
+        const cid = `${c.left}:${c.right}`
+        return [
+          cid,
+          { source: id, target: cid },
+        ]
+      })
+    )
+  )
+}
+
 export default () => {
   const [content, setContent] = useState(null)
   const docTransforms = [fixViewBox]
+  const [nodes, setNodes] = useState([])
+  const [links, setLinks] = useState([])
+  const [graph, setGraph] = useState()
+  const [generating, setGenerating] = useState(false)
   
-  useEffect(() => {}, [])
+  useEffect(() => {
+    setGraph({ nodes, links })
+  }, [nodes, links])
   const onDOMStart = ({ child }) => {
-    console.info('Processing', child)
+    const connections = getConnections(child)
+    setNodes((nodes) => ([
+      ...nodes,
+      ...(
+        Object.keys(connections)
+        .map(k => ({ id: k }))
+      ),
+    ]))
+    setLinks((links) => ([
+      ...links,
+      ...Object.values(connections),
+    ]))
+  }
+  const onBuildStart = ({ node }) => {
+    const id = `${node.left}:${node.right}`
+    const connections = getConnections(node)
+    setNodes([
+      { id },
+      ...(
+        Object.keys(connections)
+        .map(k => ({ id: k }))
+      ),
+    ])
+    setLinks(Object.values(connections))
   }
   const load = async (evt) => {
+    setGenerating(true)
     const files = evt.target.files
     const name = evt.target.value
 
@@ -83,9 +128,8 @@ export default () => {
           `CID for ${name}: ${cid.toString()}`
         )
         const dom = await buildDOM({
-          root, onDOMStart,
+          root, onBuildStart, onDOMStart,
         })
-        console.info('DOM', dom)
         setContent(dom)
       } catch(err) {
         console.warn('Error Building', err)
@@ -98,18 +142,7 @@ export default () => {
         )
       }
     }
-  }
-
-  const graph = {
-    nodes: [...new Array(5)].map(
-      (_, i) => ({ id: i + 1 })
-    ),
-    links: [
-      { source: 1, target: 3 },
-      { source: 3, target: 4 },
-      { source: 5, target: 3 },
-      { source: 5, target: 1 },
-    ]
+    setGenerating(false)
   }
 
   return (
@@ -119,13 +152,17 @@ export default () => {
         <ListItem _before={{ content: '"$ "' }}>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["http://localhost:3000", "http://localhost:5001", "https://webui.ipfs.io", "https://dysbulic.github.io"]'</ListItem>
         <ListItem _before={{ content: '"$ "' }}>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST"]'</ListItem>
       </UnorderedList>
-      <Input type="file" onChange={load} maxW={500} fontSize={30}/>
+      <Input type="file"
+        onChange={load}
+        minH="1.8em" maxW={600} mt={6}
+        fontSize={30}
+      />
       {content && (
         <Box h="90vh">
           {content}
         </Box>
       )}
-      <ForcedGraph {...{ graph }}/>
+      <ForcedGraph {...{ graph, generating }}/>
     </Flex>
   )
 }
