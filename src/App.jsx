@@ -52,39 +52,40 @@ const getConnections = (node) => {
 export default () => {
   const [content, setContent] = useState(null)
   const docTransforms = [fixViewBox]
-  const [nodes, setNodes] = useState([])
-  const [links, setLinks] = useState([])
-  const [graph, setGraph] = useState()
+  const [graph, setGraph] = (
+    useState({ nodes: [], links: []})
+  )
   const [generating, setGenerating] = useState(false)
   
-  useEffect(() => {
-    setGraph({ nodes, links })
-  }, [nodes, links])
-  const onDOMStart = ({ child }) => {
-    const connections = getConnections(child)
-    setNodes((nodes) => ([
-      ...nodes,
-      ...(
-        Object.keys(connections)
-        .map(k => ({ id: k }))
-      ),
-    ]))
-    setLinks((links) => ([
-      ...links,
-      ...Object.values(connections),
-    ]))
-  }
   const onBuildStart = ({ node }) => {
     const id = `${node.left}:${node.right}`
     const connections = getConnections(node)
-    setNodes([
+    const nodes = [
       { id },
       ...(
         Object.keys(connections)
         .map(k => ({ id: k }))
       ),
-    ])
-    setLinks(Object.values(connections))
+    ]
+    const links = Object.values(connections)
+    setGraph({ nodes, links })
+  }
+  const onDOMStart = ({ child }) => {
+    console.info('DS', child)
+    const connections = getConnections(child)
+    setGraph(({ nodes = [], links = [] }) => ({
+      nodes: [
+        ...nodes,
+        ...(
+          Object.keys(connections)
+          .map(k => ({ id: k }))
+        ),
+      ],
+      links: [
+        ...links,
+        ...Object.values(connections),
+      ],
+    }))
   }
   const load = async (evt) => {
     setGenerating(true)

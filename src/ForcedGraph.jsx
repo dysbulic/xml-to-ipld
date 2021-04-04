@@ -50,6 +50,7 @@ const chartOn = (domNode) => {
   const update = ({ nodes, links }) => {
     // Make a shallow copy to protect against mutation, while
     // recycling old nodes to preserve position and velocity.
+    console.info({ nodes, links })
     const old = new Map(node.data().map(d => [d.id, d]))
     nodes = nodes.map(d => Object.assign(old.get(d.id) || {}, d))
     links = links.map(d => Object.assign({}, d))

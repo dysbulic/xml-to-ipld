@@ -113,9 +113,11 @@ const cleanAttributes = async (attributes) => {
       delete attrs[attr]
     }
   }
+  // ToDo: switch this to a blacklist & convert everything else
   for(let attr of [
     'flood-opacity', 'flood-color', 'stop-color',
-    'clip-rule', 'stroke-miterlimit',
+    'clip-rule', 'stroke-miterlimit', 'stroke-linejoin',
+    'stroke-linecap', 'stroke-width',
   ]) {
     if(attrs[attr]) {
       attrs[camelCase(attr, '-')] = attrs[attr]

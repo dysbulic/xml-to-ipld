@@ -1,3 +1,4 @@
+import React from 'react'
 import * as d3 from 'd3'
 import { useEffect, useRef } from 'react'
 import { Box, Button, Flex } from '@chakra-ui/react'
@@ -112,7 +113,7 @@ export default () => {
 
   useEffect(() => {
     chart.update(graphs[0])
-    container.current.appendChild(chart)
+    container.current?.appendChild(chart)
   }, [])
 
 
