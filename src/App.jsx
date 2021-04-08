@@ -34,21 +34,6 @@ const fixViewBox = (json) => {
   }
 }
 
-const getConnections = (node) => {
-  const id = `${node.left}:${node.right}`
-  return (
-    Object.fromEntries(
-      node.children.map((c) => {
-        const cid = `${c.left}:${c.right}`
-        return [
-          cid,
-          { source: id, target: cid },
-        ]
-      })
-    )
-  )
-}
-
 export default () => {
   const [content, setContent] = useState(null)
   const docTransforms = [fixViewBox]
@@ -56,34 +41,25 @@ export default () => {
     useState({ nodes: [], links: []})
   )
   const [generating, setGenerating] = useState(false)
+  const [status, setStatus] = useState(null)
   
-  const onBuildStart = ({ node }) => {
-    const id = `${node.left}:${node.right}`
-    const connections = getConnections(node)
-    const nodes = [
-      { id },
-      ...(
-        Object.keys(connections)
-        .map(k => ({ id: k }))
-      ),
-    ]
-    const links = Object.values(connections)
+  const onBuildStart = ({ root }) => {
+    const id = `${root.left}:${root.right}`
+    const nodes = [{ id }]
+    const links = []
     setGraph({ nodes, links })
   }
-  const onDOMStart = ({ child }) => {
-    console.info('DS', child)
-    const connections = getConnections(child)
+  const onDOMStart = ({ parent, child }) => {
+    const pid = `${parent.left}:${parent.right}`
+    const cid = `${child.left}:${child.right}`
     setGraph(({ nodes = [], links = [] }) => ({
       nodes: [
         ...nodes,
-        ...(
-          Object.keys(connections)
-          .map(k => ({ id: k }))
-        ),
+        { id: cid },
       ],
       links: [
         ...links,
-        ...Object.values(connections),
+        { source: pid, target: cid },
       ],
     }))
   }
@@ -124,11 +100,11 @@ export default () => {
           ),
         })
         const root = (await ipfs.dag.get(cid)).value
-        console.info(
-          `CID for ${name}: ${cid.toString()}`
+        setStatus(
+          <Text>CID for {name}: {cid.toString()}</Text>
         )
         const dom = await buildDOM({
-          root, onBuildStart, onDOMStart,
+          root, onBuildStart, onDOMStart, onLeaf: onDOMStart,
         })
         setContent(dom)
       } catch(err) {
@@ -157,6 +133,7 @@ export default () => {
         minH="1.8em" maxW={600} mt={6}
         fontSize={30}
       />
+      {status}
       {content && (
         <Box h="90vh">
           {content}

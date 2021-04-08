@@ -117,7 +117,8 @@ const cleanAttributes = async (attributes) => {
   for(let attr of [
     'flood-opacity', 'flood-color', 'stop-color',
     'clip-rule', 'stroke-miterlimit', 'stroke-linejoin',
-    'stroke-linecap', 'stroke-width',
+    'stroke-linecap', 'stroke-width', 'clip-path',
+    'fill-rule',
   ]) {
     if(attrs[attr]) {
       attrs[camelCase(attr, '-')] = attrs[attr]
@@ -137,15 +138,15 @@ export const buildDOM = async ({
   if(root.type !== 'element') {
     throw new Error(`Root Type: ${root.type}`)
   }
+  if(root.depth === 1 && root.left === 1) {
+    onBuildStart?.({ root })
+  }
   root.children = await Promise.all(
     Object.values(
       await optDeref(root.children ?? [])
     )
     .map(optDeref)
   )
-  if(root.depth === 1 && root.left === 1) {
-    onBuildStart?.({ root })
-  }
   const children = []
   for(let child of root.children) {
     if(child.type === 'element') {
@@ -176,6 +177,7 @@ export const buildDOM = async ({
         onDOMFinish?.({ parent: root, child, node: dom })
         children.push(dom)
       } else {
+        onLeaf?.({ parent: root, child })
         // otherwise build a node
         const attrs = await cleanAttributes(child.attributes)
         attrs.key = ++key.val
@@ -186,7 +188,6 @@ export const buildDOM = async ({
         const elem = (
           React.createElement(child.name, attrs, text)
         )
-        onLeaf?.({ parent: root, child, elem })
         children.push(elem)
       }
     } else if(child.value && child.value.trim() !== '') {
