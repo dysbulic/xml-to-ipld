@@ -1,6 +1,6 @@
 import * as d3 from 'd3'
 import React, { useEffect, useRef, useState } from 'react'
-import { Box, Button, chakra, Flex } from '@chakra-ui/react'
+import { chakra } from '@chakra-ui/react'
 
 const color = d3.scaleOrdinal(d3.schemeTableau10)
 
@@ -103,7 +103,7 @@ export default ({ graph, generating = false }) => {
     } else {
       clearInterval(intervalId)
     }
-  }, [chart, graph])
+  }, [chart, generating])
 
   return (
     <chakra.svg h="90vh" ref={svg}/>

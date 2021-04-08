@@ -132,7 +132,7 @@ export const buildDOM = async ({
   root, key = { val: 0 },
   onBuildStart = null, onBuildEnd = null,
   onDOMStart = null, onDOMFinish = null,
-  onChildElem = null,
+  onLeaf = null,
 }) => {
   if(root.type !== 'element') {
     throw new Error(`Root Type: ${root.type}`)
@@ -144,18 +144,18 @@ export const buildDOM = async ({
     .map(optDeref)
   )
   if(root.depth === 1 && root.left === 1) {
-    onBuildStart?.({ node: root })
+    onBuildStart?.({ root })
   }
   const children = []
   for(let child of root.children) {
     if(child.type === 'element') {
+      onDOMStart?.({ parent: root, child })
       child.children = await Promise.all(
         Object.values(
           await optDeref(child.children ?? [])
         )
         .map(optDeref)
       )
-      onDOMStart?.({ child })
       if(
         child.children.length === 0
         || child.children.some(
@@ -170,10 +170,10 @@ export const buildDOM = async ({
             root: child, key,
             onBuildStart, onBuildEnd,
             onDOMStart, onDOMFinish,
-            onChildElem,
+            onLeaf,
           })
         )
-        onDOMFinish?.({ child, node: dom })
+        onDOMFinish?.({ parent: root, child, node: dom })
         children.push(dom)
       } else {
         // otherwise build a node
@@ -186,7 +186,7 @@ export const buildDOM = async ({
         const elem = (
           React.createElement(child.name, attrs, text)
         )
-        onChildElem?.({ child, node: elem })
+        onLeaf?.({ parent: root, child, elem })
         children.push(elem)
       }
     } else if(child.value && child.value.trim() !== '') {
@@ -198,6 +198,8 @@ export const buildDOM = async ({
   const elem = React.createElement(
     root.name, attrs, children.length > 0 ? children : null
   )
-  onBuildEnd?.(root, elem)
+  if(root.depth === 1 && root.left === 1) {
+    onBuildEnd?.(root, elem)
+  }
   return elem
 }

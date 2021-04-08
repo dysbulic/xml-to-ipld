@@ -115,7 +115,6 @@ export default () => {
         node: doc.documentElement,
         nodeFor: nodeToJSON,
       })
-      console.info('DFS', json)
       try {
         docTransforms.forEach(t => t(json))
         const cid = await toTree({
