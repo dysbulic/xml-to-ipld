@@ -2,7 +2,14 @@ import ipfsClient from 'ipfs-http-client'
 import React from 'react'
 import CID from 'cids'
 
-export const ipfs = ipfsClient({ port: 5001 })
+const host = window.location.host.split(':')[0]
+export const ipfs = (
+  host === 'localhost' ? (
+    ipfsClient({ host, port: 5001 })
+  ) : (
+    ipfsClient({ host: 'ipfs.io', port: 443 })
+  )
+)
 
 export const toIPLD = async (obj) => {
   return await ipfs.dag.put(obj)
@@ -118,7 +125,8 @@ const cleanAttributes = async (attributes) => {
     'flood-opacity', 'flood-color', 'stop-color',
     'clip-rule', 'stroke-miterlimit', 'stroke-linejoin',
     'stroke-linecap', 'stroke-width', 'clip-path',
-    'fill-rule',
+    'fill-rule', 'font-size', 'font-family',
+    'enable-background',
   ]) {
     if(attrs[attr]) {
       attrs[camelCase(attr, '-')] = attrs[attr]

@@ -12,7 +12,8 @@ import {
 } from "@chakra-ui/icons"
 //import { Provider } from 'react-redux'
 import Restructure from './Restructure'
-import FromCID from 'FromCID'
+import FromCID from './FromCID'
+import About from './About'
 
 const overrides = {
   config: {
@@ -72,6 +73,7 @@ export default () => (
         exact={false}
         component={FromCID}
       />
+      <Route path='/about' component={About}/>
       <Route path='/' exact={false} component={Restructure}/>
       </Switch>
     </Router>

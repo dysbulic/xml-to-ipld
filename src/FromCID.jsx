@@ -19,18 +19,20 @@ export default ({ history }) => {
   const [graph, setGraph] = (
     useState({ nodes: [], links: []})
   )
-  let { cidParam } = useParams()
-  if(!cidParam) {
-    cidParam = useQuery().get('cid')
-  }
-  const [cid, setCID] = useState(cidParam)
+  const { cid: paramCID } = useParams()
+  const queryCID = useQuery().get('cid')
+  const cid = paramCID ?? queryCID
   const [formCID, setFormCID] = useState('')
+  const [startTime, setStartTime] = useState()
+  const [endTime, setEndTime] = useState()
 
   const onBuildStart = ({ root }) => {
     const id = `${root.left}:${root.right}`
     const nodes = [{ id }]
     const links = []
     setGraph({ nodes, links })
+    setStartTime(performance.now())
+    setEndTime(null)
   }
   const onDOMStart = ({ parent, child }) => {
     const pid = `${parent.left}:${parent.right}`
@@ -46,6 +48,9 @@ export default ({ history }) => {
       ],
     }))
   }
+  const onBuildEnd = () => {
+    setEndTime(performance.now())
+  }
   const onSubmit = () => {
     history.push(`/cid/${formCID}`)
   }
@@ -59,24 +64,31 @@ export default ({ history }) => {
             root: cidObj,
             onBuildStart, onDOMStart,
             onLeaf: onDOMStart,
+            onBuildEnd,
           }))
         }
       } catch(err) {
-        // bad CID
+        if(cid) {
+          console.warn('Load Error', err)
+        }
       }
     }, [cid]
   )
   useEffect(() => { load() }, [load])
 
+  const time = (
+    (endTime ?? performance.now()) - (startTime ?? 0)
+  )
+
   return (
     <Flex direction="column" align="center">
       {cid ? (
         <>
-          <Text>Loading: {cid}</Text>
-          <Flex w="100%">
+          <Text>Loading: {cid} ({time.toLocaleString()}ms)</Text>
+          <Flex w="100%" h="90vh">
             <ForcedGraph
               {...{ graph }}
-              flexGrow={1} h="90vh" mr={100}
+              flexGrow={1} mr={100}
             />
             {doc}
           </Flex>
@@ -84,7 +96,7 @@ export default ({ history }) => {
       ) : (
         <Box as="form" id="cid" w="100%" {...{ onSubmit }}>
           <Input
-            value={formCID ?? undefined}
+            value={formCID ?? ''}
             onChange={
               (evt) => setFormCID(evt.target.value)
             }
@@ -93,13 +105,9 @@ export default ({ history }) => {
             color="black"
             ml={20} mt={6}
             maxW="93%"
-            onKeyPress={(evt) => {
-              if(evt.key === 'Enter') {
-                document.forms.cid.submit()
-              }
-            }}
             _placeholder={{ color: '#333' }}
           />
+          <Input type="submit" visibility="hidden"/>
         </Box>
       )}
     </Flex>
