@@ -2,8 +2,8 @@ import ipfsClient from 'ipfs-http-client'
 import React from 'react'
 import CID from 'cids'
 
-const ipfs = (
-  ipfsClient({ host: 'ipfs.io', port: 443 })
+let ipfs = (
+  ipfsClient({ protocol: 'http', host: 'localhost', port: 5001 })
 )
 
 export const camelCase = (str, sep = '-') => (
@@ -77,10 +77,16 @@ export const nodeToJSON = ({
 
 // Dereference a CID if the node is one
 const optDeref = async (node) => {
-  if(CID.isCID(node)) {
-    return (await ipfs.dag.get(node)).value
+  try {
+    if(CID.isCID(node)) {
+      return (await ipfs.dag.get(node)).value
+    }
+    return node
+  } catch(err) {
+    console.warn('ERR', err)
+    ipfs = ipfsClient({ host: 'ipfs.io', port: 443 })
+    return await optDeref(node)
   }
-  return node
 }
 
 const cleanAttributes = async (attributes) => {
