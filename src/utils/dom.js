@@ -2,18 +2,9 @@ import ipfsClient from 'ipfs-http-client'
 import React from 'react'
 import CID from 'cids'
 
-const host = window.location.host.split(':')[0]
-export const ipfs = (
-  host === 'localhost' ? (
-    ipfsClient({ host, port: 5001 })
-  ) : (
-    ipfsClient({ host: 'ipfs.io', port: 443 })
-  )
+const ipfs = (
+  ipfsClient({ host: 'ipfs.io', port: 443 })
 )
-
-export const toIPLD = async (obj) => {
-  return await ipfs.dag.put(obj)
-}
 
 export const camelCase = (str, sep = '-') => (
   str.split(sep)
@@ -166,41 +157,21 @@ export const buildDOM = async ({
         )
         .map(optDeref)
       )
-      if(
-        child.children.length === 0
-        || child.children.some(
-          (sub) => (
-            !['text', 'cdata'].includes(sub.type)
-          )
-        )
-      ) {
-        // if there are non-text nodes, recurse
-        const dom = await (
-          buildDOM({
-            root: child, key,
-            onBuildStart, onBuildEnd,
-            onDOMStart, onDOMFinish,
-            onLeaf,
-          })
-        )
-        onDOMFinish?.({ parent: root, child, node: dom })
-        children.push(dom)
-      } else {
-        onLeaf?.({ parent: root, child })
-        // otherwise build a node
-        const attrs = await cleanAttributes(child.attributes)
-        attrs.key = ++key.val
-
-        const text = (
-          child.children.map(c => c.value).join()
-        )
-        const elem = (
-          React.createElement(child.name, attrs, text)
-        )
-        children.push(elem)
-      }
-    } else if(child.value && child.value.trim() !== '') {
-      console.error('Child', child.value)
+      const dom = await (
+        buildDOM({
+          root: child, key,
+          onBuildStart, onBuildEnd,
+          onDOMStart, onDOMFinish,
+          onLeaf,
+        })
+      )
+      onDOMFinish?.({ parent: root, child, node: dom })
+      children.push(dom)
+    } else if(['text', 'cdata'].includes(child.type)) {
+      onLeaf({ parent: root, child })
+      children.push(child.value)
+    } else if(child?.value?.trim() !== '') {
+      console.error('Child', child)
     }
   }
   const attrs = await cleanAttributes(root.attributes)

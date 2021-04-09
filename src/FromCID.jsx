@@ -8,7 +8,7 @@ import React, {
 } from 'react'
 import { useParams } from 'react-router'
 import { useLocation } from 'react-router-dom'
-import { buildDOM } from './util'
+import { buildDOM } from './utils/dom'
 
 const useQuery = () => (
   new URLSearchParams(useLocation().search)
@@ -30,6 +30,7 @@ export default ({ history }) => {
     const id = `${root.left}:${root.right}`
     const nodes = [{ id }]
     const links = []
+    setDoc(null)
     setGraph({ nodes, links })
     setStartTime(performance.now())
     setEndTime(null)

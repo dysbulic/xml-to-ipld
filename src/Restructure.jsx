@@ -4,14 +4,18 @@ import {
   Input,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
+import ipfsClient from 'ipfs-http-client'
 import {
-  nodeToJSON, buildDOM, ipfs,
-} from './util'
+  nodeToJSON, buildDOM,
+} from './utils/dom'
 import { getDoc } from './utils/content'
 import { dfs, toTree } from './utils/structures'
 
 const ForcedGraph = loadable(() => import('./ForcedGraph'))
 //const DynGraph = loadable(() => import('./DynGraph'))
+export const ipfs = (
+  ipfsClient({ host: 'localhost', port: 5001 })
+)
 
 const isNum = (maybe) => (
   /^(\d+\.?\d*)|(\d*\.?\d+)$/.test(maybe)
