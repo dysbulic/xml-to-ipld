@@ -67,8 +67,11 @@ export default () => (
         )}
       </Menu>
       <Switch>
-      <Route path='/cid/' component={FromCID}/>
-      <Route path='/cid/:cid' component={FromCID}/>
+      <Route
+        path='/cid/:cid?'
+        exact={false}
+        component={FromCID}
+      />
       <Route path='/' exact={false} component={Restructure}/>
       </Switch>
     </Router>

@@ -1,30 +1,30 @@
 import {
   Flex, Input, Text, Box,
 } from '@chakra-ui/react'
-import CID from 'cids';
-import ForcedGraph from 'ForcedGraph';
-import ForceGraph from 'ForceGraph';
+import CID from 'cids'
+import ForcedGraph from 'ForcedGraph'
 import React, {
   useEffect, useState, useCallback,
 } from 'react'
 import { useParams } from 'react-router'
-import { useLocation } from 'react-router-dom';
-import { buildDOM } from './util';
+import { useLocation } from 'react-router-dom'
+import { buildDOM } from './util'
 
 const useQuery = () => (
   new URLSearchParams(useLocation().search)
 )
 
-export default () => {
+export default ({ history }) => {
   const [doc, setDoc] = useState(null)
   const [graph, setGraph] = (
     useState({ nodes: [], links: []})
   )
-  let { cid } = useParams()
-  if(!cid) {
-    cid = useQuery().get('cid')
-    console.info({ cid })
+  let { cidParam } = useParams()
+  if(!cidParam) {
+    cidParam = useQuery().get('cid')
   }
+  const [cid, setCID] = useState(cidParam)
+  const [formCID, setFormCID] = useState('')
 
   const onBuildStart = ({ root }) => {
     const id = `${root.left}:${root.right}`
@@ -46,15 +46,23 @@ export default () => {
       ],
     }))
   }
+  const onSubmit = () => {
+    history.push(`/cid/${formCID}`)
+  }
 
   const load = useCallback(
     async () => {
-      if(cid) {
-        setDoc(await buildDOM({
-          root: new CID(cid),
-          onBuildStart, onDOMStart,
-          onLeaf: onDOMStart,
-        }))
+      try {
+        const cidObj = new CID(cid)
+        if(cidObj) {
+          setDoc(await buildDOM({
+            root: cidObj,
+            onBuildStart, onDOMStart,
+            onLeaf: onDOMStart,
+          }))
+        }
+      } catch(err) {
+        // bad CID
       }
     }, [cid]
   )
@@ -65,18 +73,21 @@ export default () => {
       {cid ? (
         <>
           <Text>Loading: {cid}</Text>
-          <Flex>
+          <Flex w="100%">
             <ForcedGraph
               {...{ graph }}
-              grow={1} mr={100}
+              flexGrow={1} h="90vh" mr={100}
             />
             {doc}
           </Flex>
         </>
       ) : (
-        <Box as="form" id="cid">
+        <Box as="form" id="cid" w="100%" {...{ onSubmit }}>
           <Input
-            name="cid"
+            value={formCID ?? undefined}
+            onChange={
+              (evt) => setFormCID(evt.target.value)
+            }
             placeholder="IPFS Content ID"
             bg="white"
             color="black"

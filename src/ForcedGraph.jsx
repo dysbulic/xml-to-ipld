@@ -24,13 +24,13 @@ const chartOn = (domNode) => {
   )
   let link = (
     svg.append('g')
-    .attr('stroke', '#000')
+    .attr('stroke', '#FFF')
     .attr('stroke-width', 1.5)
     .selectAll('line')
   )
   let node = (
     svg.append('g')
-    .attr('stroke', '#fff')
+    .attr('stroke', '#FFF')
     .attr('stroke-width', 1.5)
     .selectAll('circle')
   )
@@ -45,6 +45,12 @@ const chartOn = (domNode) => {
     .attr('y1', d => d.source.y)
     .attr('x2', d => d.target.x)
     .attr('y2', d => d.target.y)
+  }
+
+  const rezoom = () => {
+    const bounds = svg.node().getBBox()
+    const { x, y, width, height } = bounds
+    svg.attr('viewBox', [x, y, width, height])
   }
 
   const update = ({ nodes, links }) => {
@@ -71,23 +77,18 @@ const chartOn = (domNode) => {
     simulation.nodes(nodes)
     simulation.force('link').links(links)
     simulation.alpha(1).restart()
-  }
 
-  const rezoom = () => {
-    const bounds = svg.node().getBBox()
-    const { x, y, width, height } = bounds
-    svg.attr('viewBox', [x, y, width, height])
+    rezoom()
   }
 
   return Object.assign(svg.node(), { update, rezoom })
 }
 
 export default ({
-  graph, generating = false, ...props
+  graph, ...props
 }) => {
   const svg = useRef()
   const [chart, setChart] = useState()
-  const [intervalId, setIntervalId] = useState()
 
   useEffect(() => {
     setChart(chartOn(svg.current))
@@ -97,20 +98,7 @@ export default ({
     graph && chart?.update(graph)
   }, [chart, graph])
 
-  useEffect(() => {
-    if(generating) {
-      if(intervalId) {
-        clearInterval(intervalId)
-      }
-      setIntervalId(
-        setInterval(() => chart.rezoom(), 100)
-      )
-    } else {
-      clearInterval(intervalId)
-    }
-  }, [chart, generating])
-
   return (
-    <chakra.svg h="90vh" {...props} ref={svg}/>
+    <chakra.svg {...props} ref={svg}/>
   )
 }

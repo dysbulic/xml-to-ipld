@@ -40,7 +40,6 @@ export default () => {
   const [graph, setGraph] = (
     useState({ nodes: [], links: []})
   )
-  const [generating, setGenerating] = useState(false)
   const [status, setStatus] = useState(null)
   
   const onBuildStart = ({ root }) => {
@@ -64,7 +63,6 @@ export default () => {
     }))
   }
   const load = async (evt) => {
-    setGenerating(true)
     const files = evt.target.files
     const name = evt.target.value
 
@@ -118,7 +116,6 @@ export default () => {
         )
       }
     }
-    setGenerating(false)
   }
 
   return (
@@ -139,7 +136,7 @@ export default () => {
           {content}
         </Box>
       )}
-      <ForcedGraph {...{ graph, generating }}/>
+      <ForcedGraph maxH="90vh" {...{ graph }}/>
     </Flex>
   )
 }
