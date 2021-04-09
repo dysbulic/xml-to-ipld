@@ -1,145 +1,77 @@
-import loadable from '@loadable/component'
+import React from 'react'
 import {
-  Flex, ListItem, UnorderedList, Text, Box,
-  Input,
+  HashRouter as Router, Switch, Route,
+  Link as RouterLink,
+} from 'react-router-dom'
+import {
+  ChakraProvider, extendTheme, Menu, MenuItem,
+  MenuButton, Button, MenuList, Link as ChakraLink,
 } from '@chakra-ui/react'
-import React, { useEffect, useState } from 'react'
 import {
-  nodeToJSON, buildDOM, ipfs,
-} from './util'
-import { getDoc } from './utils/content'
-import { dfs, toTree } from './utils/structures'
+  ChevronDownIcon, HamburgerIcon
+} from "@chakra-ui/icons"
+//import { Provider } from 'react-redux'
+import Restructure from './Restructure'
+import FromCID from 'FromCID'
 
-const ForcedGraph = loadable(() => import('./ForcedGraph'))
-//const DynGraph = loadable(() => import('./DynGraph'))
+const overrides = {
+  config: {
+    initialColorMode: 'dark',
+  },
+  styles: {
+    global: {
+      body: {
+        minH: '100vh',
+      },
+      a: {
+        textDecoration: 'underline',
+      },
+    },
+  },
+}
+const theme = extendTheme(overrides)
 
-const isNum = (maybe) => (
-  /^(\d+\.?\d*)|(\d*\.?\d+)$/.test(maybe)
+const Link = ({ children, to }) => (
+  <ChakraLink
+    as={RouterLink}
+    {...{ to }}
+    w='100%'
+  >{children}</ChakraLink>
 )
 
-const fixViewBox = (json) => {
-  // without this images won't fill the frame
-  if(json?.attributes?.xmlns === 'http://www.w3.org/2000/svg') {
-    const { width: w, height: h, viewBox: b } = (
-      json?.attributes
-    )
-    if(!b && isNum(w) && isNum(h)) {
-      json.attributes.viewBox = (
-        [0, 0, w, h].join(' ')
-      )
-    }
-    // ??= not supported by webpack
-    !w && (json.attributes.width = '100%')
-    !h && (json.attributes.height = '100%')
-  }
-}
-
-export default () => {
-  const [content, setContent] = useState(null)
-  const docTransforms = [fixViewBox]
-  const [graph, setGraph] = (
-    useState({ nodes: [], links: []})
-  )
-  const [generating, setGenerating] = useState(false)
-  const [status, setStatus] = useState(null)
-  
-  const onBuildStart = ({ root }) => {
-    const id = `${root.left}:${root.right}`
-    const nodes = [{ id }]
-    const links = []
-    setGraph({ nodes, links })
-  }
-  const onDOMStart = ({ parent, child }) => {
-    const pid = `${parent.left}:${parent.right}`
-    const cid = `${child.left}:${child.right}`
-    setGraph(({ nodes = [], links = [] }) => ({
-      nodes: [
-        ...nodes,
-        { id: cid },
-      ],
-      links: [
-        ...links,
-        { source: pid, target: cid },
-      ],
-    }))
-  }
-  const load = async (evt) => {
-    setGenerating(true)
-    const files = evt.target.files
-    const name = evt.target.value
-
-    if(files.length === 0) {
-      throw new Error('No file is selected')
-    }
-
-    const doc = await getDoc(files[0])
-    if(doc === null) {
-      setContent(<h1><code>null</code> Document</h1>)
-    } else if(typeof doc === 'string') {
-      // eslint-disable-next-line no-control-regex
-      if(/\x00/.test(doc)) {
-        setContent(
-          <object data={`data:;base64,${btoa(doc)}`}>
-            <p>This was the binary object: {name}</p>
-          </object>
-        )
-      } else {
-        setContent(<pre>{doc}</pre>)
-      }
-    } else {
-      const json = dfs({
-        node: doc.documentElement,
-        nodeFor: nodeToJSON,
-      })
-      try {
-        docTransforms.forEach(t => t(json))
-        const cid = await toTree({
-          obj: json,
-          leafFor: async (node) => (
-            await ipfs.dag.put(node)
-          ),
-        })
-        const root = (await ipfs.dag.get(cid)).value
-        setStatus(
-          <Text>CID for {name}: {cid.toString()}</Text>
-        )
-        const dom = await buildDOM({
-          root, onBuildStart, onDOMStart, onLeaf: onDOMStart,
-        })
-        setContent(dom)
-      } catch(err) {
-        console.warn('Error Building', err)
-        setContent(
+export default () => (
+  <ChakraProvider theme={theme}>
+    {/* <Provider store={store}> */}
+    <Router basename='/'>
+      <Menu>
+        {({ isOpen }) => (
           <>
-            <Text>Unable to create object.</Text>
-            <Text>Error: <q>{err.message}</q></Text>
-            <Text>If the error is with fetching, try the CORS solution above.</Text>
+            <MenuButton
+              isActive={isOpen} as={Button}
+              position='fixed' top='1rem' left='1rem'
+            >
+              {isOpen ? <ChevronDownIcon/> : <HamburgerIcon/>}
+            </MenuButton>
+            <MenuList>
+            <MenuItem>
+                <Link to='/'>🏡 Home</Link>
+              </MenuItem>
+              <MenuItem>
+                <Link to='/cid'>✍ By <acronym title="Content Identifier">CID</acronym></Link>
+              </MenuItem>
+              <MenuItem>
+                <Link to='/about'>📰 About</Link>
+              </MenuItem>
+            </MenuList>
           </>
-        )
-      }
-    }
-    setGenerating(false)
-  }
-
-  return (
-    <Flex align="center" direction="column" mt={25}>
-      <Text>This program requires write access to an IPFS endpoint. If you want to use it from the web, you'll need to whitelist <code>dysbulic.github.io</code>.</Text>
-      <UnorderedList listStyleType="none">
-        <ListItem _before={{ content: '"$ "' }}>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["http://localhost:3000", "http://localhost:5001", "https://webui.ipfs.io", "https://dysbulic.github.io"]'</ListItem>
-        <ListItem _before={{ content: '"$ "' }}>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST"]'</ListItem>
-      </UnorderedList>
-      <Input type="file"
-        onChange={load}
-        minH="1.8em" maxW={600} mt={6}
-        fontSize={30}
-      />
-      {status}
-      {content && (
-        <Box h="90vh">
-          {content}
-        </Box>
-      )}
-      <ForcedGraph {...{ graph, generating }}/>
-    </Flex>
-  )
-}
+        )}
+      </Menu>
+      <Switch>
+      <Route path='/cid/' component={FromCID}/>
+      <Route path='/cid/:cid' component={FromCID}/>
+      <Route path='/' exact={false} component={Restructure}/>
+      </Switch>
+    </Router>
+  {/* </Provider> */}
+  </ChakraProvider>
+)

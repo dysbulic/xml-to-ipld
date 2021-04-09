@@ -135,6 +135,7 @@ export const buildDOM = async ({
   onDOMStart = null, onDOMFinish = null,
   onLeaf = null,
 }) => {
+  root = await optDeref(root)
   if(root.type !== 'element') {
     throw new Error(`Root Type: ${root.type}`)
   }

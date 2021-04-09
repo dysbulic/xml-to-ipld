@@ -82,7 +82,9 @@ const chartOn = (domNode) => {
   return Object.assign(svg.node(), { update, rezoom })
 }
 
-export default ({ graph, generating = false }) => {
+export default ({
+  graph, generating = false, ...props
+}) => {
   const svg = useRef()
   const [chart, setChart] = useState()
   const [intervalId, setIntervalId] = useState()
@@ -109,6 +111,6 @@ export default ({ graph, generating = false }) => {
   }, [chart, generating])
 
   return (
-    <chakra.svg h="90vh" ref={svg}/>
+    <chakra.svg h="90vh" {...props} ref={svg}/>
   )
 }
