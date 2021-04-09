@@ -14,7 +14,7 @@ import { dfs, toTree } from './utils/structures'
 const ForcedGraph = loadable(() => import('./ForcedGraph'))
 //const DynGraph = loadable(() => import('./DynGraph'))
 export const ipfs = (
-  ipfsClient({ host: 'localhost', port: 5001 })
+  ipfsClient({ protocol: 'http', host: 'localhost', port: 5001 })
 )
 
 const isNum = (maybe) => (
@@ -129,7 +129,7 @@ export default () => {
     <Flex align="center" direction="column" mt={25}>
       <Text>This program requires write access to an IPFS endpoint. If you want to use it from the web, you'll need to be running a node locally &amp; whitelist <code>dysbulic.github.io</code>.</Text>
       <UnorderedList listStyleType="none">
-        <ListItem _before={{ content: '"$ "' }}>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["http://localhost:3000", "http://localhost:5001", "https://webui.ipfs.io", "https://dysbulic.github.io"]'</ListItem>
+        <ListItem _before={{ content: '"$ "' }}>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["webui://-", "http://localhost:3000", "http://127.0.0.1:5001", "https://webui.ipfs.io", "https://dysbulic.github.io"]'</ListItem>
         <ListItem _before={{ content: '"$ "' }}>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST"]'</ListItem>
       </UnorderedList>
       <Input type="file"

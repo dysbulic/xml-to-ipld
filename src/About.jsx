@@ -27,7 +27,7 @@ export default () => (
         <ListItem><Link to="/cid/bafyreiadbcuiiwmdhzca2ajxwjgguwjyidujex2ptfu77rpidyt65lsm5e">Gazoo</Link> <i>(~20 nodes)</i></ListItem>
         <ListItem><Link to="/cid/bafyreibu2ase2fvphe47yjfiebtvvx236f4pbgqzgraayyd2bfszekldzi">MetaGame Flag</Link> <i>(~30 nodes)</i></ListItem>
         <ListItem><Link to="/cid/bafyreif645kruyhewydqwyjpor6z24mu3dzj2jsi6f2w57xoxcmnlf4ypa">Linux Fox</Link> <i>(~150 nodes)</i></ListItem>
-        <ListItem><Link to="/cid/bafyreihqodbfy47utwfqyxnmsxpxgs5p3g5opcqnilor6flt3lwhksxrsu">Chakras</Link> <i>(1000+ nodes)</i></ListItem>
+        <ListItem><Link to="/cid/bafyreiepdlskoh2ogf63cfbjccjpz7xtporqwoo4sna77tz3modfttu7p4">Chakras</Link> <i>(1000+ nodes)</i></ListItem>
       </UnorderedList>
     </Flex>
   </Flex>
