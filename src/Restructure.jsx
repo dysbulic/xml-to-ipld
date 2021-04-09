@@ -23,7 +23,10 @@ const isNum = (maybe) => (
 
 const fixViewBox = (json) => {
   // without this images won't fill the frame
-  if(json?.attributes?.xmlns === 'http://www.w3.org/2000/svg') {
+  if(
+    json?.attributes?.xmlns
+    === 'http://www.w3.org/2000/svg'
+  ) {
     const { width: w, height: h, viewBox: b } = (
       json?.attributes
     )
@@ -101,12 +104,12 @@ export default () => {
             await ipfs.dag.put(node)
           ),
         })
-        const root = (await ipfs.dag.get(cid)).value
         setStatus(
           <Text>CID for {name}: {cid.toString()}</Text>
         )
         const dom = await buildDOM({
-          root, onBuildStart, onDOMStart, onLeaf: onDOMStart,
+          root: cid, onBuildStart, onDOMStart,
+          onLeaf: onDOMStart,
         })
         setContent(dom)
       } catch(err) {
@@ -124,7 +127,7 @@ export default () => {
 
   return (
     <Flex align="center" direction="column" mt={25}>
-      <Text>This program requires write access to an IPFS endpoint. If you want to use it from the web, you'll need to whitelist <code>dysbulic.github.io</code>.</Text>
+      <Text>This program requires write access to an IPFS endpoint. If you want to use it from the web, you'll need to be running a node locally &amp; whitelist <code>dysbulic.github.io</code>.</Text>
       <UnorderedList listStyleType="none">
         <ListItem _before={{ content: '"$ "' }}>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["http://localhost:3000", "http://localhost:5001", "https://webui.ipfs.io", "https://dysbulic.github.io"]'</ListItem>
         <ListItem _before={{ content: '"$ "' }}>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST"]'</ListItem>
@@ -136,7 +139,7 @@ export default () => {
       />
       {status}
       {content && (
-        <Box h="90vh">
+        <Box h="90vh" w="100%">
           {content}
         </Box>
       )}

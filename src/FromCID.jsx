@@ -1,14 +1,16 @@
 import {
   Flex, Input, Text, Box,
 } from '@chakra-ui/react'
+import loadable from '@loadable/component'
 import CID from 'cids'
-import ForcedGraph from 'ForcedGraph'
 import React, {
   useEffect, useState, useCallback,
 } from 'react'
 import { useParams } from 'react-router'
 import { useLocation } from 'react-router-dom'
 import { buildDOM } from './utils/dom'
+
+const ForcedGraph = loadable(() => import('./ForcedGraph'))
 
 const useQuery = () => (
   new URLSearchParams(useLocation().search)
@@ -23,8 +25,8 @@ export default ({ history }) => {
   const queryCID = useQuery().get('cid')
   const cid = paramCID ?? queryCID
   const [formCID, setFormCID] = useState('')
-  const [startTime, setStartTime] = useState()
-  const [endTime, setEndTime] = useState()
+  const [startTime, setStartTime] = useState(0)
+  const [endTime, setEndTime] = useState(0)
 
   const onBuildStart = ({ root }) => {
     const id = `${root.left}:${root.right}`
