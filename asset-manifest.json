@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.js": "/xml-to-ipld/static/js/main.2b92867a.chunk.js",
-    "main.js.map": "/xml-to-ipld/static/js/main.2b92867a.chunk.js.map",
+    "main.js": "/xml-to-ipld/static/js/main.6f2af8cc.chunk.js",
+    "main.js.map": "/xml-to-ipld/static/js/main.6f2af8cc.chunk.js.map",
     "runtime-main.js": "/xml-to-ipld/static/js/runtime-main.10eabaf5.js",
     "runtime-main.js.map": "/xml-to-ipld/static/js/runtime-main.10eabaf5.js.map",
     "static/js/2.66f529ba.chunk.js": "/xml-to-ipld/static/js/2.66f529ba.chunk.js",
@@ -14,6 +14,6 @@
   "entrypoints": [
     "static/js/runtime-main.10eabaf5.js",
     "static/js/2.66f529ba.chunk.js",
-    "static/js/main.2b92867a.chunk.js"
+    "static/js/main.6f2af8cc.chunk.js"
   ]
 }
