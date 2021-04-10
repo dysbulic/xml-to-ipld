@@ -1,23 +1,23 @@
 {
   "files": {
-    "static/js/0.c5a06288.chunk.js": "/xml-to-ipld/static/js/0.c5a06288.chunk.js",
-    "static/js/0.c5a06288.chunk.js.map": "/xml-to-ipld/static/js/0.c5a06288.chunk.js.map",
-    "static/js/1.1bf6ce6e.chunk.js": "/xml-to-ipld/static/js/1.1bf6ce6e.chunk.js",
-    "static/js/1.1bf6ce6e.chunk.js.map": "/xml-to-ipld/static/js/1.1bf6ce6e.chunk.js.map",
-    "main.js": "/xml-to-ipld/static/js/main.b4240fec.chunk.js",
-    "main.js.map": "/xml-to-ipld/static/js/main.b4240fec.chunk.js.map",
+    "static/js/0.4f9da07d.chunk.js": "/xml-to-ipld/static/js/0.4f9da07d.chunk.js",
+    "static/js/0.4f9da07d.chunk.js.map": "/xml-to-ipld/static/js/0.4f9da07d.chunk.js.map",
+    "static/js/1.c909715e.chunk.js": "/xml-to-ipld/static/js/1.c909715e.chunk.js",
+    "static/js/1.c909715e.chunk.js.map": "/xml-to-ipld/static/js/1.c909715e.chunk.js.map",
+    "main.js": "/xml-to-ipld/static/js/main.8b234c1b.chunk.js",
+    "main.js.map": "/xml-to-ipld/static/js/main.8b234c1b.chunk.js.map",
     "runtime-main.js": "/xml-to-ipld/runtime-main.bundle.js",
     "runtime-main.js.map": "/xml-to-ipld/runtime-main.bundle.js.map",
-    "static/js/4.89d327f4.chunk.js": "/xml-to-ipld/static/js/4.89d327f4.chunk.js",
-    "static/js/4.89d327f4.chunk.js.map": "/xml-to-ipld/static/js/4.89d327f4.chunk.js.map",
-    "static/js/5.11b31918.chunk.js": "/xml-to-ipld/static/js/5.11b31918.chunk.js",
-    "static/js/5.11b31918.chunk.js.map": "/xml-to-ipld/static/js/5.11b31918.chunk.js.map",
+    "static/js/4.04ca9f2d.chunk.js": "/xml-to-ipld/static/js/4.04ca9f2d.chunk.js",
+    "static/js/4.04ca9f2d.chunk.js.map": "/xml-to-ipld/static/js/4.04ca9f2d.chunk.js.map",
+    "static/js/5.0f3cdd78.chunk.js": "/xml-to-ipld/static/js/5.0f3cdd78.chunk.js",
+    "static/js/5.0f3cdd78.chunk.js.map": "/xml-to-ipld/static/js/5.0f3cdd78.chunk.js.map",
     "index.html": "/xml-to-ipld/index.html",
-    "static/js/4.89d327f4.chunk.js.LICENSE.txt": "/xml-to-ipld/static/js/4.89d327f4.chunk.js.LICENSE.txt"
+    "static/js/4.04ca9f2d.chunk.js.LICENSE.txt": "/xml-to-ipld/static/js/4.04ca9f2d.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "runtime-main.bundle.js",
-    "static/js/4.89d327f4.chunk.js",
-    "static/js/main.b4240fec.chunk.js"
+    "static/js/4.04ca9f2d.chunk.js",
+    "static/js/main.8b234c1b.chunk.js"
   ]
 }
