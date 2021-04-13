@@ -6,13 +6,14 @@ import {
 import {
   ChakraProvider, extendTheme, Menu, MenuItem,
   MenuButton, Button, MenuList, Link as ChakraLink,
+  chakra,
 } from '@chakra-ui/react'
 import {
   ChevronDownIcon, HamburgerIcon
-} from "@chakra-ui/icons"
-//import { Provider } from 'react-redux'
-import Restructure from './Restructure'
-import FromCID from './FromCID'
+} from '@chakra-ui/icons'
+import CBOR from './CBOR-DAG'
+import Ceramic from './Ceramic'
+import Build from './Build'
 import About from './About'
 
 const overrides = {
@@ -32,6 +33,7 @@ const overrides = {
 }
 const theme = extendTheme(overrides)
 
+const Acronym = chakra('acronym')
 const Link = ({ children, to }) => (
   <ChakraLink
     as={RouterLink}
@@ -42,7 +44,6 @@ const Link = ({ children, to }) => (
 
 export default () => (
   <ChakraProvider theme={theme}>
-    {/* <Provider store={store}> */}
     <Router basename='/'>
       <Menu>
         {({ isOpen }) => (
@@ -55,10 +56,13 @@ export default () => (
             </MenuButton>
             <MenuList>
             <MenuItem>
-                <Link to='/'>🏡 Home</Link>
+                <Link to='/'>🏡 Store as CBOR-DAG</Link>
               </MenuItem>
               <MenuItem>
-                <Link to='/cid'>✍ By <acronym title="Content Identifier">CID</acronym></Link>
+                <Link to='/ceramic'>🎡 Store as Ceramic</Link>
+              </MenuItem>
+              <MenuItem>
+                <Link to='/cid'>✍ Build from DAG</Link>
               </MenuItem>
               <MenuItem>
                 <Link to='/about'>📰 About</Link>
@@ -69,14 +73,18 @@ export default () => (
       </Menu>
       <Switch>
       <Route
-        path='/cid/:cid?'
+        path='/build/:root?'
         exact={false}
-        component={FromCID}
+        component={Build}
       />
       <Route path='/about' component={About}/>
-      <Route path='/' exact={false} component={Restructure}/>
+      <Route path='/ceramic' component={Ceramic}/>
+      <Route
+        path='/'
+        exact={false}
+        component={CBOR}
+      />
       </Switch>
     </Router>
-  {/* </Provider> */}
   </ChakraProvider>
 )

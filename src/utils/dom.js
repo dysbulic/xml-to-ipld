@@ -1,9 +1,14 @@
 import ipfsClient from 'ipfs-http-client'
 import React from 'react'
 import CID from 'cids'
+import Ceramic from '@ceramicnetwork/http-client'
 
 let ipfs = (
   ipfsClient({ protocol: 'http', host: 'localhost', port: 5001 })
+)
+
+const ceramic = (
+  new Ceramic('https://ceramic-clay.3boxlabs.com')
 )
 
 export const camelCase = (str, sep = '-') => (
@@ -80,6 +85,13 @@ const optDeref = async (node) => {
   try {
     if(CID.isCID(node)) {
       return (await ipfs.dag.get(node)).value
+    } else if(
+      typeof node === 'string'
+      && node.startsWith('ceramic://')
+    ) {
+      return (
+        (await ceramic.loadDocument(node)).content
+      )
     }
     return node
   } catch(err) {

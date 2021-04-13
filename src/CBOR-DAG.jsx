@@ -1,18 +1,13 @@
-import loadable from '@loadable/component'
 import {
-  Flex, ListItem, UnorderedList, Text, Box,
-  Input,
+  Flex, ListItem, UnorderedList, Text, Input,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import ipfsClient from 'ipfs-http-client'
-import {
-  nodeToJSON, buildDOM,
-} from './utils/dom'
+import { Link } from 'react-router-dom'
+import { nodeToJSON } from './utils/dom'
 import { getDoc } from './utils/content'
 import { dfs, toTree } from './utils/structures'
 
-const ForcedGraph = loadable(() => import('./ForcedGraph'))
-//const DynGraph = loadable(() => import('./DynGraph'))
 export const ipfs = (
   ipfsClient({ protocol: 'http', host: 'localhost', port: 5001 })
 )
@@ -44,31 +39,8 @@ const fixViewBox = (json) => {
 export default () => {
   const [content, setContent] = useState(null)
   const docTransforms = [fixViewBox]
-  const [graph, setGraph] = (
-    useState({ nodes: [], links: []})
-  )
   const [status, setStatus] = useState(null)
   
-  const onBuildStart = ({ root }) => {
-    const id = `${root.left}:${root.right}`
-    const nodes = [{ id }]
-    const links = []
-    setGraph({ nodes, links })
-  }
-  const onDOMStart = ({ parent, child }) => {
-    const pid = `${parent.left}:${parent.right}`
-    const cid = `${child.left}:${child.right}`
-    setGraph(({ nodes = [], links = [] }) => ({
-      nodes: [
-        ...nodes,
-        { id: cid },
-      ],
-      links: [
-        ...links,
-        { source: pid, target: cid },
-      ],
-    }))
-  }
   const load = async (evt) => {
     const files = evt.target.files
     const name = evt.target.value
@@ -105,13 +77,8 @@ export default () => {
           ),
         })
         setStatus(
-          <Text>CID for {name}: {cid.toString()}</Text>
+          <Text>CID for {name}: <Link to  ={`/build/${cid}`}>{cid.toString()}</Link></Text>
         )
-        const dom = await buildDOM({
-          root: cid, onBuildStart, onDOMStart,
-          onLeaf: onDOMStart,
-        })
-        setContent(dom)
       } catch(err) {
         console.warn('Error Building', err)
         setContent(
@@ -127,23 +94,21 @@ export default () => {
 
   return (
     <Flex align="center" direction="column" mt={25}>
-      <Text>This program requires write access to an IPFS endpoint. If you want to use it from the web, you'll need to be running a node locally &amp; whitelist <code>dysbulic.github.io</code>.</Text>
-      <UnorderedList listStyleType="none">
-        <ListItem _before={{ content: '"$ "' }}>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["webui://-", "http://localhost:3000", "http://127.0.0.1:5001", "https://webui.ipfs.io", "https://dysbulic.github.io"]'</ListItem>
-        <ListItem _before={{ content: '"$ "' }}>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST"]'</ListItem>
-      </UnorderedList>
+      <Flex direction="column" maxW="35rem" textAlign="justify" style={{ textIndent: 20 }}>
+        <Text>Application to serialize a DOM tree to IPLD as a <acronym title="Common Binary Object Representation">CBOR</acronym>-<acronym title="Directed Acylic Graph">DAG</acronym> where each node is a separate document.</Text>
+        <Text>This program requires write access to an IPFS API endpoint. If you want to use it from the web, you'll need to be running a node locally &amp; whitelist <code>dysbulic.github.io</code>.</Text>
+        <UnorderedList listStyleType="none" style={{ textIndent: -25 }}>
+          <ListItem _before={{ content: '"$ "' }}>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["webui://-", "http://localhost:3000", "http://127.0.0.1:5001", "https://webui.ipfs.io", "https://dysbulic.github.io"]'</ListItem>
+          <ListItem _before={{ content: '"$ "' }}>ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST"]'</ListItem>
+        </UnorderedList>
+      </Flex>
       <Input type="file"
         onChange={load}
         minH="1.8em" maxW={600} mt={6}
         fontSize={30}
       />
       {status}
-      {content && (
-        <Box h="90vh" w="100%">
-          {content}
-        </Box>
-      )}
-      <ForcedGraph maxH="90vh" {...{ graph }}/>
+      {content}
     </Flex>
   )
 }

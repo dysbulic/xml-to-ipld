@@ -1,5 +1,5 @@
 import {
-  Flex, Input, Text, Box,
+  Flex, Input, Text, Box, Progress,
 } from '@chakra-ui/react'
 import loadable from '@loadable/component'
 import CID from 'cids'
@@ -10,7 +10,9 @@ import { useParams } from 'react-router'
 import { useLocation } from 'react-router-dom'
 import { buildDOM } from './utils/dom'
 
-const ForcedGraph = loadable(() => import('./ForcedGraph'))
+const ForcedGraph = (
+  loadable(() => import('./ForcedGraph'))
+)
 
 const useQuery = () => (
   new URLSearchParams(useLocation().search)
@@ -21,17 +23,23 @@ export default ({ history }) => {
   const [graph, setGraph] = (
     useState({ nodes: [], links: []})
   )
-  const { cid: paramCID } = useParams()
-  const queryCID = useQuery().get('cid')
-  const cid = paramCID ?? queryCID
-  const [formCID, setFormCID] = useState('')
+  const { root: paramRoot } = useParams()
+  const queryRoot = useQuery().get('root')
+  const root = decodeURIComponent(
+    paramRoot ?? queryRoot
+  )
+  const [formRoot, setFormRoot] = useState('')
   const [startTime, setStartTime] = useState(0)
   const [endTime, setEndTime] = useState(0)
+  const [total, setTotal] = useState(1)
+  const [progress, setProgress] = useState(1)
 
   const onBuildStart = ({ root }) => {
     const id = `${root.left}:${root.right}`
     const nodes = [{ id }]
     const links = []
+    setTotal(root.right / 2)
+    setProgress(1)
     setDoc(null)
     setGraph({ nodes, links })
     setStartTime(performance.now())
@@ -50,32 +58,47 @@ export default ({ history }) => {
         { source: pid, target: cid },
       ],
     }))
+    setProgress(p => p + 1)
   }
   const onBuildEnd = () => {
+    // total === 1 w/o wrapping
+    setTotal(t => {
+      setProgress(t)
+      return t
+    })
     setEndTime(performance.now())
   }
   const onSubmit = () => {
-    history.push(`/cid/${formCID}`)
+    const path = (
+      `/build/${encodeURIComponent(formRoot)}`
+    )
+    history.push(path)
   }
 
   const load = useCallback(
     async () => {
       try {
-        const cidObj = new CID(cid)
-        if(cidObj) {
+        let rootObj
+        try {
+          rootObj = new CID(root)
+        } catch(err) {}
+        if(root.startsWith('ceramic://')) {
+          rootObj = root
+        } else if(root && !rootObj) {
+          console.warn('Unknown Root', root)
+        }
+        if(rootObj) {
           setDoc(await buildDOM({
-            root: cidObj,
+            root: rootObj,
             onBuildStart, onDOMStart,
             onLeaf: onDOMStart,
             onBuildEnd,
           }))
         }
       } catch(err) {
-        if(cid) {
-          console.warn('Load Error', err)
-        }
+        console.error('Load Error', err)
       }
-    }, [cid]
+    }, [root]
   )
   useEffect(() => { load() }, [load])
 
@@ -85,9 +108,17 @@ export default ({ history }) => {
 
   return (
     <Flex direction="column" align="center">
-      {cid ? (
+      {root ? (
         <>
-          <Text>Loading: {cid} ({time.toLocaleString()}ms)</Text>
+          <Text>
+            Loading: {root}
+            <span> </span>
+            ({time.toLocaleString()}ms)
+          </Text>
+          <Progress
+            w="75%"
+            value={(progress / total) * 100}
+          />
           <Flex w="100%" h="90vh">
             <ForcedGraph
               {...{ graph }}
@@ -97,13 +128,19 @@ export default ({ history }) => {
           </Flex>
         </>
       ) : (
-        <Box as="form" id="cid" w="100%" {...{ onSubmit }}>
+        <Box
+          as="form"
+          id="cid"
+          w="100%"
+          {...{ onSubmit }}
+        >
           <Input
-            value={formCID ?? ''}
+            value={formRoot ?? ''}
             onChange={
-              (evt) => setFormCID(evt.target.value)
+              (evt) => setFormRoot(evt.target.value)
             }
-            placeholder="IPFS Content ID"
+            autoFocus
+            placeholder="IPFS Content ID or Ceramic URI"
             bg="white"
             color="black"
             ml={20} mt={6}

@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "DOMNode",
+  "properties": {
+    "type": {
+      "type": "string"
+    },
+    "left": {
+      "type": "number"
+    },
+    "depth": {
+      "type": "number"
+    },
+    "right": {
+      "type": "number"
+    },
+    "children": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "attributes": {
+      "type": "string"
+    }
+  }
+}
