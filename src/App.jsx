@@ -62,7 +62,7 @@ export default () => (
                 <Link to='/ceramic'>🎡 Store as Ceramic</Link>
               </MenuItem>
               <MenuItem>
-                <Link to='/cid'>✍ Build from DAG</Link>
+                <Link to='/build'>✍ Build from DAG</Link>
               </MenuItem>
               <MenuItem>
                 <Link to='/about'>📰 About</Link>

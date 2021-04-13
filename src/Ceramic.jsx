@@ -1,7 +1,7 @@
 import {
   Flex, Text, Input, Button, Spinner,
 } from '@chakra-ui/react'
-import React, { useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import Ceramic from '@ceramicnetwork/http-client'
 import {
   ThreeIdConnect, EthereumAuthProvider
@@ -32,6 +32,22 @@ export default () => {
   const [status, setStatus] = useState(null)
   const [ceramic, setCeramic] = useState()
   const [connecting, setConnecting] = useState(false)
+  const [timer, setTimer] = useState(null)
+  const [startTime, setStartTime] = useState()
+  const endTime = useRef()
+
+  const counter = useCallback(() => {
+    if(startTime && !endTime.current) {
+      const δ = performance.now() - startTime
+      const time = δ.toLocaleString(
+        undefined,
+        { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+      )
+      setTimer(`${time}ms`)
+      requestAnimationFrame(counter)
+    }
+  }, [startTime])
+  useEffect(() => { counter() }, [counter])
 
   const connect = async () => {
     setConnecting(true)
@@ -52,6 +68,9 @@ export default () => {
   }
 
   const load = async (evt) => {
+    setStartTime(performance.now())
+    endTime.current = null
+
     const files = evt.target.files
     const name = evt.target.value
 
@@ -111,6 +130,7 @@ export default () => {
         )
       }
     }
+    endTime.current = performance.now()
   }
 
   return (
@@ -135,6 +155,7 @@ export default () => {
             minH="1.8em" maxW={600} mt={6}
             fontSize={30}
           />
+          {timer}
           {status}
           {content}
         </>

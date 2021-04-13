@@ -25,8 +25,9 @@ export default ({ history }) => {
   )
   const { root: paramRoot } = useParams()
   const queryRoot = useQuery().get('root')
-  const root = decodeURIComponent(
-    paramRoot ?? queryRoot
+  const resolvedRoot = paramRoot ?? queryRoot
+  const root = resolvedRoot && decodeURIComponent(
+    resolvedRoot
   )
   const [formRoot, setFormRoot] = useState('')
   const [startTime, setStartTime] = useState(0)

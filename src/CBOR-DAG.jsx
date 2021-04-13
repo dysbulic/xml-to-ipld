@@ -1,7 +1,7 @@
 import {
   Flex, ListItem, UnorderedList, Text, Input,
 } from '@chakra-ui/react'
-import React, { useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import ipfsClient from 'ipfs-http-client'
 import { Link } from 'react-router-dom'
 import { nodeToJSON } from './utils/dom'
@@ -39,9 +39,28 @@ const fixViewBox = (json) => {
 export default () => {
   const [content, setContent] = useState(null)
   const docTransforms = [fixViewBox]
+  const [timer, setTimer] = useState(null)
   const [status, setStatus] = useState(null)
-  
+  const [startTime, setStartTime] = useState()
+  const endTime = useRef()
+
+  const counter = useCallback(() => {
+    if(startTime && !endTime.current) {
+      const δ = performance.now() - startTime
+      const time = δ.toLocaleString(
+        undefined,
+        { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+      )
+      setTimer(`${time}ms`)
+      requestAnimationFrame(counter)
+    }
+  }, [startTime])
+  useEffect(() => { counter() }, [counter])
+
   const load = async (evt) => {
+    setStartTime(performance.now())
+    endTime.current = null
+
     const files = evt.target.files
     const name = evt.target.value
 
@@ -90,6 +109,7 @@ export default () => {
         )
       }
     }
+    endTime.current = performance.now()
   }
 
   return (
@@ -107,6 +127,7 @@ export default () => {
         minH="1.8em" maxW={600} mt={6}
         fontSize={30}
       />
+      {timer}
       {status}
       {content}
     </Flex>
