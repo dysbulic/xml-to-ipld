@@ -84,7 +84,39 @@ const chartOn = (domNode) => {
     rezoom()
   }
 
-  return Object.assign(svg.node(), { update, rezoom })
+  svg.append('defs')
+  .append('style')
+  .text(`circle.highlighted { stroke: orangered; fill: orangered; }`)
+  
+  // x and y are scales that project the data space to the ‘unzoomed’ pixel referential
+  const x = d3.scaleLinear([0, 1], [0, width])
+  const y = d3.scaleLinear([0, 1], [0, height])
+  
+  const delaunay = d3.Delaunay.from(nodes, d => x(d[0]), d => y(d[1]))
+
+  const g = svg.append('g');
+
+  let transform;
+
+  const zoom = d3.zoom().on('zoom', (e) => {
+    g.attr('transform', (transform = e.transform))
+    g.style('stroke-width', 3 / Math.sqrt(transform.k));
+    nodes.attr('r', 3 / Math.sqrt(transform.k))
+  })
+  
+  const zoomable = (
+    svg
+    .call(zoom)
+    .call(zoom.transform, d3.zoomIdentity)
+    .on('pointermove', (event) => {
+      const p = transform.invert(d3.pointer(event))
+      const i = delaunay.find(...p)
+      nodes.classed('highlighted', (_, j) => i === j)
+      d3.select(nodes.nodes()[i]).raise()
+    })
+    .node()
+  )
+  return Object.assign(zoomable.node(), { update, rezoom })
 }
 
 export default ({
