@@ -24,10 +24,11 @@ export default () => (
     <Flex w="100%" align="flex-start" direction="column">
       <Text mt={5}>Examples:</Text>
       <UnorderedList>
-        <ListItem><Link to="/cid/bafyreiadbcuiiwmdhzca2ajxwjgguwjyidujex2ptfu77rpidyt65lsm5e">Gazoo</Link> <i>(~20 nodes)</i></ListItem>
-        <ListItem><Link to="/cid/bafyreibu2ase2fvphe47yjfiebtvvx236f4pbgqzgraayyd2bfszekldzi">MetaGame Flag</Link> <i>(~30 nodes)</i></ListItem>
-        <ListItem><Link to="/cid/bafyreif645kruyhewydqwyjpor6z24mu3dzj2jsi6f2w57xoxcmnlf4ypa">Linux Fox</Link> <i>(~150 nodes)</i></ListItem>
-        <ListItem><Link to="/cid/bafyreihqodbfy47utwfqyxnmsxpxgs5p3g5opcqnilor6flt3lwhksxrsu">Chakras</Link> <i>(1000+ nodes)</i></ListItem>
+        <ListItem><Link to="/build/bafyreiadbcuiiwmdhzca2ajxwjgguwjyidujex2ptfu77rpidyt65lsm5e">Gazoo</Link> <i>(~20 CBOR nodes)</i></ListItem>
+        <ListItem><Link to="/build/bafyreibu2ase2fvphe47yjfiebtvvx236f4pbgqzgraayyd2bfszekldzi">MetaGame Flag</Link> <i>(~30 CBOR nodes)</i></ListItem>
+        <ListItem><Link to="/build/ceramic%3A%2F%2Fk3y52l7qbv1fryb0xtwadtq0z31win1rgiux03gme0t6ixa6oryayfimfohotv7y8">MetaGame Flag</Link> <i>(~30 Ceramic nodes)</i></ListItem>
+        <ListItem><Link to="/build/bafyreif645kruyhewydqwyjpor6z24mu3dzj2jsi6f2w57xoxcmnlf4ypa">Linux Fox</Link> <i>(~150 CBOR nodes)</i></ListItem>
+        <ListItem><Link to="/build/bafyreihqodbfy47utwfqyxnmsxpxgs5p3g5opcqnilor6flt3lwhksxrsu">Chakras</Link> <i>(1000+ CBOR nodes)</i></ListItem>
       </UnorderedList>
     </Flex>
   </Flex>

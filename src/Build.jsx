@@ -37,7 +37,7 @@ export default ({ history }) => {
 
   const onBuildStart = ({ root }) => {
     const id = `${root.left}:${root.right}`
-    const nodes = [{ id }]
+    const nodes = [{ id, name: root.name }]
     const links = []
     setTotal(root.right / 2)
     setProgress(1)
@@ -52,7 +52,7 @@ export default ({ history }) => {
     setGraph(({ nodes = [], links = [] }) => ({
       nodes: [
         ...nodes,
-        { id: cid },
+        { id: cid, name: child.name },
       ],
       links: [
         ...links,
@@ -83,7 +83,7 @@ export default ({ history }) => {
         try {
           rootObj = new CID(root)
         } catch(err) {}
-        if(root.startsWith('ceramic://')) {
+        if(root?.startsWith('ceramic://')) {
           rootObj = root
         } else if(root && !rootObj) {
           console.warn('Unknown Root', root)

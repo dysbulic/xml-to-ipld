@@ -58,6 +58,7 @@ export default () => {
   useEffect(() => { counter() }, [counter])
 
   const load = async (evt) => {
+    setContent(null)
     setStartTime(performance.now())
     endTime.current = null
 

@@ -67,6 +67,9 @@ const chartOn = (domNode) => {
         enter.append('circle')
         .attr('r', 8)
         .attr('fill', d => color(d.id))
+        .append('title')
+        .text(d => `${d.name} (${d.id})`)
+        .select(function () { return this.parentNode })
       ))
     )
     link = (
@@ -87,6 +90,7 @@ const chartOn = (domNode) => {
 export default ({
   graph, ...props
 }) => {
+  const [updating, setUpdating] = useState(true)
   const svg = useRef()
   const [chart, setChart] = useState()
 
@@ -95,10 +99,15 @@ export default ({
   }, [])
 
   useEffect(() => {
-    graph && chart?.update(graph)
+    graph && updating && chart?.update(graph)
   }, [chart, graph])
 
   return (
-    <chakra.svg {...props} ref={svg}/>
+    <chakra.svg
+      {...props}
+      ref={svg}
+      onMouseDown={() => setUpdating(false) }
+      onMouseUp={() => setUpdating(true) }
+    />
   )
 }

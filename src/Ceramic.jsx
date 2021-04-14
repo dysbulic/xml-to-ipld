@@ -50,6 +50,7 @@ export default () => {
   useEffect(() => { counter() }, [counter])
 
   const connect = async () => {
+    console.info('Connecting')
     setConnecting(true)
     const threeIdConnect = new ThreeIdConnect()
     const addresses = await window.ethereum.enable()
@@ -58,16 +59,22 @@ export default () => {
         window.ethereum, addresses[0]
       )
     )
+    console.info("3ID Connection")
     await threeIdConnect.connect(authProvider)
+    console.info("3ID DID Provider")
     const didProvider = await (
       threeIdConnect.getDidProvider()
     )
+    console.info("createCeramic()")
     const ceramic = createCeramic()
+    console.info("ceramic.setDIDProvider()")
     await ceramic.setDIDProvider(didProvider)
     setCeramic(ceramic)
+    console.info('Created Ceramic')
   }
 
   const load = async (evt) => {
+    setContent(null)
     setStartTime(performance.now())
     endTime.current = null
 
@@ -100,8 +107,9 @@ export default () => {
       try {
         const uri = await toTree({
           obj: json,
-          leafFor: async (node) => (
-            (
+          leafFor: async (node) => {
+            console.info('Writing', node)
+            return (
               await ceramic.createDocument(
                 'tile',
                 {
@@ -115,7 +123,7 @@ export default () => {
             )
             .commitId
             .toUrl()
-          ),
+          },
         })
         setStatus(
           <Text>URI for {name}: <Link to={`/build/${encodeURIComponent(uri)}`}>{uri}</Link></Text>
