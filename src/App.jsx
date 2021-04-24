@@ -72,18 +72,18 @@ export default () => (
         )}
       </Menu>
       <Switch>
-      <Route
-        path='/build/:root?'
-        exact={false}
-        component={Build}
-      />
-      <Route path='/about' component={About}/>
-      <Route path='/ceramic' component={Ceramic}/>
-      <Route
-        path='/'
-        exact={false}
-        component={CBOR}
-      />
+        <Route
+          path='/build/:root?'
+          exact={false}
+          component={Build}
+        />
+        <Route path='/about' component={About}/>
+        <Route path='/ceramic' component={Ceramic}/>
+        <Route
+          path='/'
+          exact={false}
+          component={CBOR}
+        />
       </Switch>
     </Router>
   </ChakraProvider>
