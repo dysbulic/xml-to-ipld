@@ -82,10 +82,12 @@ export default ({ history }) => {
         let rootObj
         try {
           rootObj = new CID(root)
-        } catch(err) {}
-        if(root?.startsWith('ceramic://')) {
-          rootObj = root
-        } else if(root && !rootObj) {
+        } catch(err) {
+          if(root?.startsWith('ceramic://')) {
+            rootObj = root
+          }
+        }
+        if(root && !rootObj) {
           console.warn('Unknown Root', root)
         }
         if(rootObj) {

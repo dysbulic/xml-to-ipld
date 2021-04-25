@@ -2,13 +2,14 @@ import ipfsClient from 'ipfs-http-client'
 import React from 'react'
 import CID from 'cids'
 import Ceramic from '@ceramicnetwork/http-client'
+import { TileDocument } from '@ceramicnetwork/stream-tile'
 
 let ipfs = (
   ipfsClient({ protocol: 'http', host: 'localhost', port: 5001 })
 )
 
 const ceramic = (
-  new Ceramic('https://ceramic-clay.3boxlabs.com')
+  new Ceramic('https://ceramic-dev.3boxlabs.com')
 )
 
 export const camelCase = (str, sep = '-') => (
@@ -90,7 +91,7 @@ const optDeref = async (node) => {
       && node.startsWith('ceramic://')
     ) {
       return (
-        (await ceramic.loadDocument(node)).content
+        (await TileDocument.load(ceramic, node)).content
       )
     }
     return node

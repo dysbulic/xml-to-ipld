@@ -1,11 +1,16 @@
 import {
-  Flex, Text, Input, Button, Spinner,
+  Flex, Text, Input, Button, Spinner, Alert, AlertIcon,
 } from '@chakra-ui/react'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, {
+  useCallback, useEffect, useRef, useState,
+} from 'react'
 import Ceramic from '@ceramicnetwork/http-client'
 import {
-  ThreeIdConnect, EthereumAuthProvider
-} from '3id-connect'
+  ThreeIdConnect, EthereumAuthProvider,
+} from '@3id/connect'
+import ThreeIdResolver from '@ceramicnetwork/3id-did-resolver'
+import { TileDocument } from '@ceramicnetwork/stream-tile'
+import { DID } from 'dids'
 import { nodeToJSON } from './utils/dom'
 import { getDoc } from './utils/content'
 import { dfs, toTree } from './utils/structures'
@@ -16,25 +21,29 @@ const createCeramic = (
   url = 'https://ceramic-clay.3boxlabs.com',
 ) => {
   const ceramic = new Ceramic(url)
-  ceramic.didFor = async (addr) => (
-    (await ceramic.createDocument('caip10-link',
-      { metadata: {
-        family: 'caip10-link',
-        controllers: [`${addr.toLowerCase()}@eip155:1`],
-      } }
-    )).content
-  )
+  // ceramic.didFor = async (addr) => (
+  //   (await ceramic.createDocument('caip10-link',
+  //     { metadata: {
+  //       family: 'caip10-link',
+  //       controllers: [`${addr.toLowerCase()}@eip155:1`],
+  //     } }
+  //   )).content
+  // )
   return ceramic
 }
 
 export default () => {
   const [content, setContent] = useState(null)
   const [status, setStatus] = useState(null)
-  const [ceramic, setCeramic] = useState()
+  const [ceramic, setCeramic] = useState(null)
   const [connecting, setConnecting] = useState(false)
   const [timer, setTimer] = useState(null)
   const [startTime, setStartTime] = useState()
   const endTime = useRef()
+  const [error, setError] = useState(null)
+  const [messages, setMessages] = useState([])
+
+  const log = (msg) => setMessages(msgs => [...msgs, msg])
 
   const counter = useCallback(() => {
     if(startTime && !endTime.current) {
@@ -50,27 +59,25 @@ export default () => {
   useEffect(() => { counter() }, [counter])
 
   const connect = async () => {
-    console.info('Connecting')
-    setConnecting(true)
-    const threeIdConnect = new ThreeIdConnect()
-    const addresses = await window.ethereum.enable()
-    const authProvider = (
-      new EthereumAuthProvider(
+    try {
+      setConnecting(true)
+      const threeIdConnect = new ThreeIdConnect()
+      const addresses = await window.ethereum.enable()
+      const authProvider = new EthereumAuthProvider(
         window.ethereum, addresses[0]
       )
-    )
-    console.info("3ID Connection")
-    await threeIdConnect.connect(authProvider)
-    console.info("3ID DID Provider")
-    const didProvider = await (
-      threeIdConnect.getDidProvider()
-    )
-    console.info("createCeramic()")
-    const ceramic = createCeramic()
-    console.info("ceramic.setDIDProvider()")
-    await ceramic.setDIDProvider(didProvider)
-    setCeramic(ceramic)
-    console.info('Created Ceramic')
+      await threeIdConnect.connect(authProvider)
+      const ceramic = new Ceramic('https://ceramic-dev.3boxlabs.com')
+      const did = new DID({
+        provider: threeIdConnect.getDidProvider(),
+        resolver: ThreeIdResolver.getResolver(ceramic)
+      })
+      await did.authenticate()
+      ceramic.setDID(did)
+      setCeramic(ceramic)
+    } catch(err) {
+      setError(err.message)
+    }
   }
 
   const load = async (evt) => {
@@ -108,25 +115,17 @@ export default () => {
         const uri = await toTree({
           obj: json,
           leafFor: async (node) => {
-            console.info('Writing', node)
-            return (
-              await ceramic.createDocument(
-                'tile',
-                {
-                  // Styles are sharded as well
-                  // metadata: {
-                  //   schema: DocID.schemas.dom
-                  // },
-                  content: node,
-                }
+            log(`Writing: ${JSON.stringify(node).replace(/","/g, '", "')}`)
+            const tile = (
+              await TileDocument.create(
+                ceramic, node, { deterministic: true }
               )
             )
-            .commitId
-            .toUrl()
+            return tile.commitId.toUrl()
           },
         })
         setStatus(
-          <Text>URI for {name}: <Link to={`/build/${encodeURIComponent(uri)}`}>{uri}</Link></Text>
+          <Text color="lightgreen">URI for {name}: <Link to={`/build/${encodeURIComponent(uri)}`}>{uri}</Link></Text>
         )
       } catch(err) {
         console.warn('Error Building', err)
@@ -143,7 +142,8 @@ export default () => {
 
   return (
     <Flex align="center" direction="column" mt={25}>
-      <Text>This program serializes the DOM to the Ceramic Network with each node in a separate document.</Text>
+      <Text>This program serializes a <acronym title="Document Object Model">DOM</acronym> to the Ceramic Network with each node in a separate document.</Text>
+      {error && <Alert status="error" maxW="35rem"><AlertIcon /> {error}</Alert>}
       {!ceramic ? (
         <Button
           mt={7}
@@ -166,6 +166,9 @@ export default () => {
           {timer}
           {status}
           {content}
+          <ul>{messages.map((msg, i) => (
+            <li key={i}>{msg}</li>
+          ))}</ul>
         </>
       )}
     </Flex>
