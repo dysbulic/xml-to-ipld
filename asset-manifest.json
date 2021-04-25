@@ -1,23 +1,23 @@
 {
   "files": {
-    "main.js": "/xml-to-ipld/static/js/main.0aec13cb.chunk.js",
-    "main.js.map": "/xml-to-ipld/static/js/main.0aec13cb.chunk.js.map",
-    "runtime-main.js": "/xml-to-ipld/static/js/runtime-main.fb49268c.js",
-    "runtime-main.js.map": "/xml-to-ipld/static/js/runtime-main.fb49268c.js.map",
-    "static/js/2.407ffba5.chunk.js": "/xml-to-ipld/static/js/2.407ffba5.chunk.js",
-    "static/js/2.407ffba5.chunk.js.map": "/xml-to-ipld/static/js/2.407ffba5.chunk.js.map",
-    "static/js/3.cd877447.chunk.js": "/xml-to-ipld/static/js/3.cd877447.chunk.js",
-    "static/js/3.cd877447.chunk.js.map": "/xml-to-ipld/static/js/3.cd877447.chunk.js.map",
-    "static/js/4.48ae1a77.chunk.js": "/xml-to-ipld/static/js/4.48ae1a77.chunk.js",
-    "static/js/4.48ae1a77.chunk.js.map": "/xml-to-ipld/static/js/4.48ae1a77.chunk.js.map",
-    "static/js/5.cb71d7fa.chunk.js": "/xml-to-ipld/static/js/5.cb71d7fa.chunk.js",
-    "static/js/5.cb71d7fa.chunk.js.map": "/xml-to-ipld/static/js/5.cb71d7fa.chunk.js.map",
+    "main.js": "/xml-to-ipld/static/js/main.62da231b.chunk.js",
+    "main.js.map": "/xml-to-ipld/static/js/main.62da231b.chunk.js.map",
+    "runtime-main.js": "/xml-to-ipld/static/js/runtime-main.9c03eeb5.js",
+    "runtime-main.js.map": "/xml-to-ipld/static/js/runtime-main.9c03eeb5.js.map",
+    "static/js/2.7f2281a2.chunk.js": "/xml-to-ipld/static/js/2.7f2281a2.chunk.js",
+    "static/js/2.7f2281a2.chunk.js.map": "/xml-to-ipld/static/js/2.7f2281a2.chunk.js.map",
+    "static/js/3.986e7944.chunk.js": "/xml-to-ipld/static/js/3.986e7944.chunk.js",
+    "static/js/3.986e7944.chunk.js.map": "/xml-to-ipld/static/js/3.986e7944.chunk.js.map",
+    "static/js/4.b0a5c0cd.chunk.js": "/xml-to-ipld/static/js/4.b0a5c0cd.chunk.js",
+    "static/js/4.b0a5c0cd.chunk.js.map": "/xml-to-ipld/static/js/4.b0a5c0cd.chunk.js.map",
+    "static/js/5.57c1c857.chunk.js": "/xml-to-ipld/static/js/5.57c1c857.chunk.js",
+    "static/js/5.57c1c857.chunk.js.map": "/xml-to-ipld/static/js/5.57c1c857.chunk.js.map",
     "index.html": "/xml-to-ipld/index.html",
-    "static/js/2.407ffba5.chunk.js.LICENSE.txt": "/xml-to-ipld/static/js/2.407ffba5.chunk.js.LICENSE.txt"
+    "static/js/2.7f2281a2.chunk.js.LICENSE.txt": "/xml-to-ipld/static/js/2.7f2281a2.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
-    "static/js/runtime-main.fb49268c.js",
-    "static/js/2.407ffba5.chunk.js",
-    "static/js/main.0aec13cb.chunk.js"
+    "static/js/runtime-main.9c03eeb5.js",
+    "static/js/2.7f2281a2.chunk.js",
+    "static/js/main.62da231b.chunk.js"
   ]
 }
