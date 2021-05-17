@@ -1,7 +1,7 @@
 {
   "author": "Will Holcomb <dys@dhappy.org>",
   "name": "xml-to-ipld",
-  "description": "Convert XML to IPLD then a React DOM",
+  "description": "Convert XML to IPLD or Ceramic then to a React DOM",
   "version": "0.1.5",
   "homepage": "https://dysbulic.github.io/xml-to-ipld/",
   "private": false,
@@ -72,5 +72,8 @@
       "noClassCalls": true
     },
     "presets": ["@babel/preset-env"]
+  },
+  "resolutions": {
+    "cids": "^1.1.6"
   }
 }
