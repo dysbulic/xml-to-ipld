@@ -1,5 +1,7 @@
 # XML-to-IPLD
 
+<span style="color: red">*Ceramic is undergoing significant refactoring as it nears mainnet release, and the Ceramic examples are broken for the time being.*</span>
+
 A simple React app to take a DOM tree and serialize it to IPFS's IPLD data structure or the Ceramic Network's "tile" documents.
 
 Each level in the tree be a separate document with references to its children.
