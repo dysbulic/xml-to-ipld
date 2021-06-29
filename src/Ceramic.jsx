@@ -18,7 +18,7 @@ import { Link } from 'react-router-dom'
 //import DocID from './docID.json'
 
 const createCeramic = (
-  url = 'https://ceramic-clay.3boxlabs.com',
+  url = 'https://d12-a-ceramic.3boxlabs.com',
 ) => {
   const ceramic = new Ceramic(url)
   // ceramic.didFor = async (addr) => (
@@ -67,7 +67,7 @@ export default () => {
         window.ethereum, addresses[0]
       )
       await threeIdConnect.connect(authProvider)
-      const ceramic = new Ceramic('https://ceramic-dev.3boxlabs.com')
+      const ceramic = new Ceramic('https://d12-a-ceramic.3boxlabs.com')
       const did = new DID({
         provider: threeIdConnect.getDidProvider(),
         resolver: ThreeIdResolver.getResolver(ceramic)

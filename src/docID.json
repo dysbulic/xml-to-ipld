@@ -1,1 +1,8 @@
-{"definitions":{"dom":"ceramic://kjzl6cwe1jw145nwcz1ti5tdf308rdi21d3yik34zghpb1zc8u5baohf07zishz"},"schemas":{"dom":"ceramic://k3y52l7qbv1fryqj7hfkgvue382z8t9amhsbe5opn5isllixv4req6rrm44tv1fy8"}}
+{
+  "definitions": {
+    "dom": "ceramic://kjzl6cwe1jw148aqai086hexp480mwtcmpbpdu2hutrjr17q194if3vkxsto8mt"
+  },
+  "schemas": {
+    "dom": "ceramic://k3y52l7qbv1fryp3u2y6zr864kmun1iia83lwsmqivxf8k5mralawkgaesxiqjcow"
+  }
+}

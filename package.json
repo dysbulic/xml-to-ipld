@@ -15,7 +15,7 @@
     "@ceramicnetwork/http-client": "^1.0.0-rc.4",
     "@ceramicnetwork/stream-tile": "^1.0.0-rc.4",
     "@ceramicstudio/idx": "^0.5.2-beta.1",
-    "@ceramicstudio/idx-tools": "^0.9.0",
+    "@ceramicstudio/idx-tools": "^0.10.0-rc.0",
     "@chakra-ui/icons": "^1.0.9",
     "@chakra-ui/react": "^1.5.0",
     "@chakra-ui/system": "^1.6.1",
@@ -71,7 +71,9 @@
     "assumptions": {
       "noClassCalls": true
     },
-    "presets": ["@babel/preset-env"]
+    "presets": [
+      "@babel/preset-env"
+    ]
   },
   "resolutions": {
     "cids": "^1.1.6"
