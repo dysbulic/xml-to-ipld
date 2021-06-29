@@ -5,7 +5,6 @@ const Ceramic = require('@ceramicnetwork/http-client').default
 const { createDefinition, publishSchema } = require('@ceramicstudio/idx-tools')
 const { Ed25519Provider } = require('key-did-provider-ed25519')
 const fromString = require('uint8arrays/from-string')
-const { ThreeIdConnect } = require('@3id/connect')
 const { DID } = require('dids')
 const { default: KeyDidResolver } = require('key-did-resolver')
 const DOMSchema = require('../public/dom-node.schema.json')
@@ -26,10 +25,7 @@ async function run() {
     provider: keyProvider,
     resolver: { ...KeyDidResolver.getResolver() },
   }))
-
-  // ceramic.did.setProvider(keyProvider)
   await ceramic.did.authenticate()
-  // ceramic.setDID(did)
 
   const domSchema = await publishSchema(ceramic, {
     content: DOMSchema

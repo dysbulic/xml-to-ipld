@@ -17,21 +17,6 @@ import { dfs, toTree } from './utils/structures'
 import { Link } from 'react-router-dom'
 //import DocID from './docID.json'
 
-const createCeramic = (
-  url = 'https://d12-a-ceramic.3boxlabs.com',
-) => {
-  const ceramic = new Ceramic(url)
-  // ceramic.didFor = async (addr) => (
-  //   (await ceramic.createDocument('caip10-link',
-  //     { metadata: {
-  //       family: 'caip10-link',
-  //       controllers: [`${addr.toLowerCase()}@eip155:1`],
-  //     } }
-  //   )).content
-  // )
-  return ceramic
-}
-
 export default () => {
   const [content, setContent] = useState(null)
   const [status, setStatus] = useState(null)
